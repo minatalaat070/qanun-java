@@ -1,0 +1,73 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.mina.tool;
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.util.List;
+import java.util.Arrays;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+
+/**
+ *
+ * @author mina
+ */
+public class GenerateAst {
+
+    public static void main(String[] args) throws FileNotFoundException, UnsupportedEncodingException {
+        if (args.length != 1) {
+            System.err.println("Usage: generate_ast <output directory>");
+            System.exit(64);
+        }
+        String outputDir = args[0];
+        defineAst(outputDir, "Expr", Arrays.asList(
+                "Binary   : Expr left, Token operator, Expr right",
+                "Grouping : Expr expression",
+                "Literal  : Object value",
+                "Unary    : Token operator, Expr right"
+        ));
+    }
+
+    private static void defineAst(String outputDir, String baseName, List<String> exprTypes) throws FileNotFoundException, UnsupportedEncodingException {
+        String path = outputDir + "/" + baseName + ".java";
+        try ( PrintWriter writer = new PrintWriter(path, "UTF-8")) {
+            writer.println("package com.mina.qanun;");
+            writer.println();
+            writer.println("import java.util.List;");
+            writer.println();
+            writer.println("abstract class " + baseName + " {");
+            for (String type : exprTypes) {
+                String className = type.split(":")[0].trim();
+                String fields = type.split(":")[1].trim();
+                defineType(writer, baseName, className, fields);
+            }
+            writer.println("}");
+        }
+    }
+
+    private static void defineType(PrintWriter writer, String baseName, String className, String fieldList) {
+        writer.println("  static class " + className + " extends " + baseName + " {");
+        // Constructor.
+        writer.println("    " + className + "(" + fieldList + ") {");
+        // Store parameters in fields.
+        String[] fields = fieldList.split(", ");
+        for (String field : fields) {
+            String name = field.split(" ")[1];
+            writer.println("      this." + name + " = " + name + ";");
+        }
+        writer.println("    }");
+
+        // Fields.
+        writer.println();
+        for (String field : fields) {
+            writer.println("    final " + field + ";");
+        }
+
+        writer.println("  }");
+    }
+
+}

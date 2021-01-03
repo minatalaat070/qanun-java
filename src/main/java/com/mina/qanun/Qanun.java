@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Qanun {
 
-    private enum Error {
+    public enum Error {
         EX_USAGE(64), EX_DATAERR(65);
 
         private final int code;
@@ -22,13 +22,17 @@ public class Qanun {
         private Error(int code) {
             this.code = code;
         }
+
+        public int getCode() {
+            return this.code;
+        }
     }
     static boolean hadError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
             System.err.println("Usage qanun [script]");
-            System.exit(Error.EX_USAGE.code);
+            System.exit(Error.EX_USAGE.getCode());
         } else if (args.length == 1) {
             runFile(args[0]);
         } else {
@@ -40,7 +44,7 @@ public class Qanun {
         byte[] bytes = Files.readAllBytes(Paths.get(path));
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
-            System.exit(Error.EX_DATAERR.code);
+            System.exit(Error.EX_DATAERR.getCode());
         }
     }
 
@@ -59,7 +63,7 @@ public class Qanun {
     }
 
     private static void run(String source) {
-        
+
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
         if (hadError) {
