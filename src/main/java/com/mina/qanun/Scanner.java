@@ -40,6 +40,7 @@ public class Scanner {
         keywords.put("true", TokenType.TRUE);
         keywords.put("var", TokenType.VAR);
         keywords.put("while", TokenType.WHILE);
+        keywords.put("swich", TokenType.SWITCH);
     }
 
     Scanner(String source) {
@@ -114,6 +115,7 @@ public class Scanner {
                 break;
             case '%':
                 addToken(isNextMatches('=') ? TokenType.PERCENTAGE_EQUAL : TokenType.PERCENTAGE);
+                break;
             case '!':
                 addToken(isNextMatches('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
                 break;
