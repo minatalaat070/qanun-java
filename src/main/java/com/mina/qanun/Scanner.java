@@ -259,6 +259,7 @@ public class Scanner {
     }
 
     private char advance() {
+        // it can be replaced with return source.charAt(current++);
         current++;
         return source.charAt(current - 1);
     }

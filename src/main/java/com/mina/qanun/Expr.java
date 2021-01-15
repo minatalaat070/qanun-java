@@ -1,6 +1,5 @@
 package com.mina.qanun;
 
-import java.util.List;
 
 abstract class Expr {
 
