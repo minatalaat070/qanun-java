@@ -98,7 +98,10 @@ public class Scanner {
                 addToken(TokenType.SEMICOLON);
                 break;
             case '*':
-                addToken(isNextMatches('=') ? TokenType.STAR_EQUAL :isNextMatches('*')?TokenType.STAR_STAR: TokenType.STAR);
+                addToken(isNextMatches('*')
+                        ? isNextMatches('=')
+                        ? TokenType.STAR_STAR_EQUAL : TokenType.STAR_STAR : isNextMatches('=')
+                        ? TokenType.STAR_EQUAL : TokenType.STAR);
                 break;
             case '/':
                 if (isNextMatches('/')) {
@@ -133,7 +136,7 @@ public class Scanner {
                 if (isEOLinComment) {
                     isEOLinComment = false;
                     break;
-                }else if(peekNext()=='\0'){
+                } else if (peekNext() == '\0') {
                     break;
                 }
                 Token lastToken = tokens.get(tokens.size() - 1);
