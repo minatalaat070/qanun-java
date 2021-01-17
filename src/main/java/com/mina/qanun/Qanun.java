@@ -15,7 +15,7 @@ import java.util.List;
 public class Qanun {
 
     public enum Error {
-        EX_USAGE(64), EX_DATAERR(65);
+        EX_USAGE(64), EX_DATAERR(65), EX_SOFTWARE(70);
 
         private final int code;
 
@@ -27,7 +27,9 @@ public class Qanun {
             return this.code;
         }
     }
+    private static final Interpreter interpreter = new Interpreter();
     static boolean hadError = false;
+    static boolean hadRuntimeError = false;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
@@ -45,6 +47,9 @@ public class Qanun {
         run(new String(bytes, Charset.defaultCharset()));
         if (hadError) {
             System.exit(Error.EX_DATAERR.getCode());
+        }
+        if(hadRuntimeError){
+            System.exit(Error.EX_SOFTWARE.getCode());
         }
     }
 
@@ -72,7 +77,7 @@ public class Qanun {
         if (hadError) {
             return;
         }
-        System.out.println(new AstPrinter().print(expression));
+        interpreter.interpret(expression);
     }
 
     static void error(int line, String message) {
@@ -85,6 +90,12 @@ public class Qanun {
         } else {
             report(token.getLine(), " at '" + token.getLexeme() + "'", message);
         }
+    }
+
+    static void runtimeError(RuntimeError error) {
+        System.err.println(error.getMessage()
+                + "\n[line " + error.token.getLine() + "]");
+        hadRuntimeError = true;
     }
 
     private static void report(int line, String where, String message) {

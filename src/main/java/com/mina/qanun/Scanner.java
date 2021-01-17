@@ -98,7 +98,7 @@ public class Scanner {
                 addToken(TokenType.SEMICOLON);
                 break;
             case '*':
-                addToken(isNextMatches('=') ? TokenType.STAR_EQUAL : TokenType.STAR);
+                addToken(isNextMatches('=') ? TokenType.STAR_EQUAL :isNextMatches('*')?TokenType.STAR_STAR: TokenType.STAR);
                 break;
             case '/':
                 if (isNextMatches('/')) {
