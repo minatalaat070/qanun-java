@@ -30,14 +30,17 @@ public class Qanun {
     private static final Interpreter interpreter = new Interpreter();
     static boolean hadError = false;
     static boolean hadRuntimeError = false;
+    static boolean isInRepl;
 
     public static void main(String[] args) throws IOException {
         if (args.length > 1) {
             System.err.println("Usage qanun [script]");
             System.exit(Error.EX_USAGE.getCode());
         } else if (args.length == 1) {
+            isInRepl = false;
             runFile(args[0]);
         } else {
+            isInRepl= true;
             runPrompt();
         }
     }
