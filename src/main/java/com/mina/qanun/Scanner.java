@@ -72,6 +72,11 @@ public class Scanner {
                 addToken(TokenType.LEFT_BRACE);
                 break;
             case '}':
+                // adding implicit semicolon before right brace if not found
+                // fixes the issue of one line block
+                if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON) {
+                    addToken(TokenType.SEMICOLON);
+                }
                 addToken(TokenType.RIGHT_BRACE);
                 break;
             case '[':
@@ -138,7 +143,7 @@ public class Scanner {
                     break;
                 } else if (peekNext() == '\0') {
                     if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
-                            && tokens.get(tokens.size()-1).getType() != TokenType.RIGHT_BRACE) {
+                            && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
                         // adding implicit semicolon in case of the script is one line 
                         // for example when input is equivelent to ```print \"Hello\"\nEOF```
                         // with checking if the last symbol is semecolon and if not add implicit one
