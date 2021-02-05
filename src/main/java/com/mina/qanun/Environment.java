@@ -1,0 +1,60 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.mina.qanun;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ *
+ * @author mina
+ */
+public class Environment {
+
+    private Map<String, Object> variblesValues = new HashMap<>();
+    private Environment enclosing;
+
+    public Environment() {
+        this.enclosing = null;
+    }
+
+    public Environment(Environment enclosing) {
+        this.enclosing = enclosing;
+    }
+
+    void define(Token name, Object value) {
+        if (variblesValues.containsKey(name.getLexeme())) {
+            throw new RuntimeError(name, "Error : redeclaration of [ var " + name.getLexeme() + " ]");
+        }
+        variblesValues.put(name.getLexeme(), value);
+    }
+
+    Object get(Token name) {
+        if (variblesValues.containsKey(name.getLexeme())) {
+            return variblesValues.get(name.getLexeme());
+        }
+        // if variable isn't found in current environement we make a
+        // recursive call to the outer scope if there one if not it throws RuntiemeError
+        if (enclosing != null) {
+            return enclosing.get(name);
+        }
+        throw new RuntimeError(name,
+                "Error: Undefined variable '" + name.getLexeme() + "'.");
+    }
+
+    void assign(Token name, Object value) {
+        if (variblesValues.containsKey(name.getLexeme())) {
+            variblesValues.put(name.getLexeme(), value);
+            return;
+        }
+        if (enclosing != null) {
+            enclosing.assign(name, value);
+            return;
+        }
+        throw new RuntimeError(name, "Undefined variable '" + name.getLexeme() + "'");
+    }
+
+}

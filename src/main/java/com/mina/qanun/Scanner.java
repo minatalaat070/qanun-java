@@ -137,6 +137,12 @@ public class Scanner {
                     isEOLinComment = false;
                     break;
                 } else if (peekNext() == '\0') {
+                    if(tokens.get(tokens.size()-1).getType()!=TokenType.SEMICOLON){
+                        // adding implicit semicolon in case of the script is one line 
+                        // for example when input is equivelent to ```print \"Hello\"\nEOF```
+                        // with checking if the last symbol is semecolon and if not add implicit one
+                        addToken(TokenType.SEMICOLON);
+                    }
                     break;
                 }
                 Token lastToken = tokens.get(tokens.size() - 1);

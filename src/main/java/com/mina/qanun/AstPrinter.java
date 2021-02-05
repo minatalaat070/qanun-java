@@ -50,6 +50,7 @@ public class AstPrinter implements Expr.Visitor<String> {
 
         return builder.toString();
     }
+
     /* a hack for trying the astprinter without parser till end of chapetr 3
     public static void main(String[] args) {
         Expr expression = new Expr.Binary(
@@ -63,5 +64,16 @@ public class AstPrinter implements Expr.Visitor<String> {
         System.out.println(new AstPrinter().print(expression));
     }
      */
+
+    @Override
+    public String visitVariableExpr(Expr.Variable expr) {
+        // returns a placeholder value, it needs Environment instance to work as intended 
+        return expr.name.toString();
+    }
+
+    @Override
+    public String visitAssignExpr(Expr.Assign expr) {
+        return expr.name.getLexeme() + " = " +expr.value.toString();
+    }
 
 }
