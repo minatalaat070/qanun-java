@@ -40,7 +40,7 @@ public class Qanun {
             isInRepl = false;
             runFile(args[0]);
         } else {
-            isInRepl= true;
+            isInRepl = true;
             runPrompt();
         }
     }
@@ -51,7 +51,7 @@ public class Qanun {
         if (hadError) {
             System.exit(Error.EX_DATAERR.getCode());
         }
-        if(hadRuntimeError){
+        if (hadRuntimeError) {
             System.exit(Error.EX_SOFTWARE.getCode());
         }
     }
@@ -64,7 +64,9 @@ public class Qanun {
                 if (line == null) {
                     break;
                 }
-                run(line + "\n");
+                if (!line.isEmpty()) {
+                    run(line + "\n");
+                }
                 hadError = false;
             }
         }
