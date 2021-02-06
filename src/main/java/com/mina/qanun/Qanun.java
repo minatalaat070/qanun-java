@@ -64,9 +64,7 @@ public class Qanun {
                 if (line == null) {
                     break;
                 }
-                if (!line.isEmpty()) {
-                    run(line + "\n");
-                }
+                run(line + "\n");
                 hadError = false;
             }
         }

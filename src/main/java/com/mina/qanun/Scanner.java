@@ -142,7 +142,7 @@ public class Scanner {
                     isEOLinComment = false;
                     break;
                 } else if (peekNext() == '\0') {
-                    if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
+                    if (tokens.size() > 0 &&tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
                             && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
                         // adding implicit semicolon in case of the script is one line 
                         // for example when input is equivelent to ```print \"Hello\"\nEOF```
