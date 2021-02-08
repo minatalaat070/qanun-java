@@ -90,6 +90,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitLogicalExpr(Expr.Logical expr) {
+        Object left = evaluate(expr.left);
+        if (expr.operator.getType() == TokenType.OR) {
+            if (isTruthy(left)) {
+                return left;
+            }
+        } else {
+            if (!isTruthy(left)) {
+                return left;
+            }
+        }
+        return evaluate(expr.right);
+    }
+
+    @Override
     public Object visitUnaryExpr(Expr.Unary expr) {
         Object right = evaluate(expr.right);
         switch (expr.operator.getType()) {
@@ -118,9 +133,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             for (Stmt stmt : statements) {
                 execute(stmt);
             }
-        }finally{
+        } finally {
             // returning to the outer environement again after exiting inner block scope
-            this.environment=previous;
+            this.environment = previous;
         }
     }
 
@@ -134,7 +149,19 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         Object value = evaluate(stmt.expression);
-        if(Qanun.isInRepl)System.out.println(stringify(value));
+        if (Qanun.isInRepl) {
+            System.out.println(stringify(value));
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitIfStmt(Stmt.If stmt) {
+        if (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.thenBranch);
+        } else if (stmt.elseBranch != null) {
+            execute(stmt.elseBranch);
+        }
         return null;
     }
 
@@ -156,9 +183,31 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitWhileStmt(Stmt.While stmt) {
+        while (isTruthy(evaluate(stmt.condition))) {
+            execute(stmt.body);
+        }
+        return null;
+    }
+
+    @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
         environment.assign(expr.name, value);
+        return value;
+    }
+
+    @Override
+    public Object visitConditionalTernaryExpr(Expr.ConditionalTernary expr) {
+        Object value = null;
+        if (isTruthy(evaluate(expr.condition))) {
+            value = evaluate(expr.trueCondition);
+        } else {
+            value = evaluate(expr.falseCondition);
+        }
+        if (Qanun.isInRepl) {
+            System.out.println(stringify(value));
+        }
         return value;
     }
 

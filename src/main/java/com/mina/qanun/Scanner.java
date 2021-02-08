@@ -124,6 +124,12 @@ public class Scanner {
             case '%':
                 addToken(isNextMatches('=') ? TokenType.PERCENTAGE_EQUAL : TokenType.PERCENTAGE);
                 break;
+            case '?':
+                addToken(TokenType.QUESTION_MARK);
+                break;
+            case ':':
+                addToken(TokenType.COLON);
+                break;
             case '!':
                 addToken(isNextMatches('=') ? TokenType.BANG_EQUAL : TokenType.BANG);
                 break;
@@ -141,11 +147,10 @@ public class Scanner {
                 if (isEOLinComment) {
                     isEOLinComment = false;
                     break;
-                } else if(peekNext()=='\n'){
+                } else if (peekNext() == '\n') {
                     //ignore if there is a sequance of new lines in raw
                     break;
-                }
-                else if (peekNext() == '\0') {
+                } else if (peekNext() == '\0') {
                     if (tokens.size() > 0 && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
                             && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
                         // adding implicit semicolon in case of the script is one line 

@@ -34,6 +34,11 @@ public class AstPrinter implements Expr.Visitor<String> {
     }
 
     @Override
+    public String visitLogicalExpr(Expr.Logical expr) {
+        return expr.left.toString() + " " + expr.operator.getLexeme() + " " + expr.right.toString();
+    }
+
+    @Override
     public String visitUnaryExpr(Expr.Unary expr) {
         return parenthesize(expr.operator.getLexeme(), expr.right);
     }
@@ -64,7 +69,6 @@ public class AstPrinter implements Expr.Visitor<String> {
         System.out.println(new AstPrinter().print(expression));
     }
      */
-
     @Override
     public String visitVariableExpr(Expr.Variable expr) {
         // returns a placeholder value, it needs Environment instance to work as intended 
@@ -73,7 +77,12 @@ public class AstPrinter implements Expr.Visitor<String> {
 
     @Override
     public String visitAssignExpr(Expr.Assign expr) {
-        return expr.name.getLexeme() + " = " +expr.value.toString();
+        return expr.name.getLexeme() + " = " + expr.value.toString();
+    }
+
+    @Override
+    public String visitConditionalTernaryExpr(Expr.ConditionalTernary expr) {
+        return expr.condition.toString() + " ? " + expr.trueCondition.toString() + " : " + expr.falseCondition.toString();
     }
 
 }

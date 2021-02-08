@@ -28,14 +28,20 @@ public class GenerateAst {
                 "Binary   : Expr left, Token operator, Expr right",
                 "Grouping : Expr expression",
                 "Literal  : Object value",
+                "Logical  : Expr left, Token operator, Expr right",
                 "Unary    : Token operator, Expr right",
-                "Variable : Token name"
+                "Variable : Token name",
+                "ConditionalTernary: Expr condition, Expr trueCondition, Expr falseCondition"
         ));
         defineAst(outputDir, "Stmt", Arrays.asList(
                 "Block      : List<Stmt> statements",
                 "Expression : Expr expression", //expression statment
+                "If         : Expr condition, Stmt thenBranch,"
+                + " Stmt elseBranch",
                 "Print      : Expr expression", // print statement
-                "Var         : Token name, Expr initializer"));
+                "Var        : Token name, Expr initializer",
+                "While      : Expr condition, Stmt body"
+        ));
     }
 
     private static void defineAst(String outputDir, String baseName, List<String> exprTypes) throws FileNotFoundException, UnsupportedEncodingException {
