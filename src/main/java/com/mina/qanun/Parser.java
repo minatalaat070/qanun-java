@@ -20,6 +20,7 @@ public class Parser {
 
     private final List<Token> tokens;
     private int current;
+    private int loopDepth = 0;
 
     public Parser(List<Token> tokens) {
         this.tokens = tokens;
@@ -114,6 +115,12 @@ public class Parser {
         if (match(TokenType.LEFT_BRACE)) {
             return new Stmt.Block(block());
         }
+        if (match(TokenType.BREAK)) {
+            return breakStatement();
+        }
+        if (match(TokenType.CONTINUE)) {
+            return continueStatement();
+        }
         return expressionStatement();
     }
 
@@ -195,7 +202,9 @@ public class Parser {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
         Expr condition = expression();
         consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
+        loopDepth++;
         Stmt body = statement();
+        loopDepth--;
         return new Stmt.While(condition, body);
     }
 
@@ -203,6 +212,22 @@ public class Parser {
         Expr expr = expression();
         consume(TokenType.SEMICOLON, "Expect ';' or a new line after expression.");
         return new Stmt.Expression(expr);
+    }
+
+    private Stmt breakStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "'break' must be used inside a loop");
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' or a new line after break.");
+        return new Stmt.Break(previous());
+    }
+
+    private Stmt continueStatement() {
+        if (loopDepth == 0) {
+            throw error(previous(), "'continue' must be used inside a loop");
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' or a new line after continue.");
+        return new Stmt.Continue(previous());
     }
 
     private List<Stmt> block() {
