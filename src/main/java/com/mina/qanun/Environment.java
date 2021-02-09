@@ -48,6 +48,9 @@ public class Environment {
     }
 
     void assign(Token name, Object value) {
+        if (constantValues.containsKey(name.getLexeme())) {
+            throw new RuntimeError(name, "Assignment of constant variable '" + name.getLexeme() + "'");
+        }
         if (variblesValues.containsKey(name.getLexeme())) {
             variblesValues.put(name.getLexeme(), value);
             return;
