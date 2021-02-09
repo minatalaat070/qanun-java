@@ -125,38 +125,69 @@ public class Parser {
     }
 
     private Stmt forStatement() {
-        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
-        Stmt initializer;
+        consume(TokenType.LEFT_PAREN, "Expect '(' after for.");
+        Stmt init;
         if (match(TokenType.SEMICOLON)) {
-            initializer = null;
+            init = null;
         } else if (match(TokenType.VAR)) {
-            initializer = varDeclaration();
+            init = varDeclaration();
         } else {
-            initializer = expressionStatement();
+            init = expressionStatement();
         }
         Expr condition = null;
-        if (!check(TokenType.SEMICOLON)) {
+        if (!match(TokenType.SEMICOLON)) {
             condition = expression();
-        }
-        consume(TokenType.SEMICOLON, "Expect ';' after loop condition");
-        Expr increment = null;
-        if (!check(TokenType.RIGHT_PAREN)) {
-            increment = expression();
-        }
-        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
-        Stmt body = statement();
-        if (increment != null) {
-            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
-        }
-        if (condition == null) {
+            consume(TokenType.SEMICOLON, "Expect ';' after condition.");
+        } else {
             condition = new Expr.Literal(true);
         }
-        body = new Stmt.While(condition, body);
-        if (initializer != null) {
-            body = new Stmt.Block(Arrays.asList(initializer, body));
+        Expr increment = null;
+        if (!match(TokenType.RIGHT_PAREN)) {
+            increment = expression();
+            consume(TokenType.RIGHT_PAREN, "Expect ')' after for expression.");
         }
-        return body;
+        loopDepth++;
+        Stmt body = statement();
+        loopDepth--;
+        // init and increment maybe null so check in interpreter
+        // condition can't be null if null means loop for ever by setting condition to true
+        return new Stmt.For(init, condition, increment, body);
     }
+//    private Stmt forStatement() {
+//        consume(TokenType.LEFT_PAREN, "Expect '(' after 'for'.");
+//        Stmt initializer;
+//        if (match(TokenType.SEMICOLON)) {
+//            initializer = null;
+//        } else if (match(TokenType.VAR)) {
+//            initializer = varDeclaration();
+//        } else {
+//            initializer = expressionStatement();
+//        }
+//        Expr condition = null;
+//        if (!check(TokenType.SEMICOLON)) {
+//            condition = expression();
+//        }
+//        consume(TokenType.SEMICOLON, "Expect ';' after loop condition");
+//        Expr increment = null;
+//        if (!check(TokenType.RIGHT_PAREN)) {
+//            increment = expression();
+//        }
+//        consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.");
+//        loopDepth++;
+//        Stmt body = statement();
+//        if (increment != null) {
+//            body = new Stmt.Block(Arrays.asList(body, new Stmt.Expression(increment)));
+//        }
+//        if (condition == null) {
+//            condition = new Expr.Literal(true);
+//        }
+//        body = new Stmt.While(condition, body, true);
+//        if (initializer != null) {
+//            body = new Stmt.Block(Arrays.asList(initializer, body));
+//        }
+//        loopDepth--;
+//        return body;
+//    }
 
     private Stmt ifStatement() {
         consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.");

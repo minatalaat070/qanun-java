@@ -183,13 +183,37 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitForStmt(Stmt.For stmt) {
+        if (stmt.init != null) {
+            execute(stmt.init);
+        }
+        while (isTruthy(evaluate(stmt.condition))) {
+            try {
+                execute(stmt.body);
+                if (stmt.increment != null) {
+                    evaluate(stmt.increment);
+                }
+            } catch (BreakJump breakJump) {
+                break;
+            } catch (ContinueJump continueJump) {
+                // automatically increament
+                if (stmt.increment != null) {
+                    evaluate(stmt.increment);
+                }
+            }
+
+        }
+        return null;
+    }
+
+    @Override
     public Void visitWhileStmt(Stmt.While stmt) {
         while (isTruthy(evaluate(stmt.condition))) {
             try {
                 execute(stmt.body);
             } catch (BreakJump breakJump) {
                 break;
-            }catch(ContinueJump continueJump){
+            } catch (ContinueJump continueJump) {
                 //do nothing just skip the rest of the loop iteration
             }
         }

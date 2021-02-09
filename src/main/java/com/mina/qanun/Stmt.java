@@ -20,6 +20,8 @@ abstract class Stmt {
 
         R visitWhileStmt(While stmt);
 
+        R visitForStmt(For stmt);
+
         R visitBreakStmt(Break stmt);
 
         R visitContinueStmt(Continue stmt);
@@ -130,6 +132,26 @@ abstract class Stmt {
         }
 
         final Expr condition;
+        final Stmt body;
+    }
+
+    static class For extends Stmt {
+
+        For(Stmt init, Expr condition, Expr increment, Stmt body) {
+            this.init = init;
+            this.condition = condition;
+            this.increment = increment;
+            this.body = body;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitForStmt(this);
+        }
+
+        final Stmt init;
+        final Expr condition;
+        final Expr increment;
         final Stmt body;
     }
 
