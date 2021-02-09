@@ -9,12 +9,13 @@ package com.mina.qanun;
  *
  * @author mina
  */
-public class RuntimeError extends RuntimeException{
+public class RuntimeError extends RuntimeException {
+
     final Token token;
 
-    public RuntimeError(Token token,String message) {
+    public RuntimeError(Token token, String message) {
         super(message);
         this.token = token;
     }
-    
+
 }

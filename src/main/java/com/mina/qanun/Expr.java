@@ -132,6 +132,19 @@ abstract class Expr {
 
         final Token name;
     }
+//
+//    static class Constant extends Expr {
+//
+//        Constant(Token name) {
+//            this.name = name;
+//        }
+//
+//        @Override
+//        <R> R accept(Visitor<R> visitor) {
+//            return visitor.visitConstantExpr(this);
+//        }
+//        final Token name;
+//    }
 
     static class ConditionalTernary extends Expr {
 

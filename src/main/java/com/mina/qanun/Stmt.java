@@ -16,6 +16,8 @@ abstract class Stmt {
 
         R visitVarStmt(Var stmt);
 
+        R visitValStmt(Val stmt);
+
         R visitWhileStmt(While stmt);
     }
 
@@ -89,6 +91,22 @@ abstract class Stmt {
         @Override
         <R> R accept(Visitor<R> visitor) {
             return visitor.visitVarStmt(this);
+        }
+
+        final Token name;
+        final Expr initializer;
+    }
+
+    static class Val extends Stmt {
+
+        Val(Token name, Expr initializer) {
+            this.name = name;
+            this.initializer = initializer;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitValStmt(this);
         }
 
         final Token name;

@@ -42,7 +42,6 @@ public class Parser {
         if (match(TokenType.EQUAL)) {
             Token equals = previous();
             Expr value = assignment();
-
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value);
@@ -88,6 +87,9 @@ public class Parser {
         try {
             if (match(TokenType.VAR)) {
                 return varDeclaration();
+            }
+            if (match(TokenType.VAL)) {
+                return valDeclaration();
             }
             return statement();
         } catch (ParseError parseError) {
@@ -177,6 +179,16 @@ public class Parser {
 
         consume(TokenType.SEMICOLON, "Expect ';' or a new line after variable declaration.");
         return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt valDeclaration() {
+        Token name = consume(TokenType.IDENTIFIER, "Expect constant name.");
+        Expr initializer = null;
+        if (match(TokenType.EQUAL)) {
+            initializer = expression();
+        }
+        consume(TokenType.SEMICOLON, "Expect ';' or a new line after constant declaration.");
+        return new Stmt.Val(name, initializer);
     }
 
     private Stmt whileStatement() {
@@ -341,6 +353,7 @@ public class Parser {
                 case CLASS:
                 case FUN:
                 case VAR:
+                case VAL:
                 case FOR:
                 case IF:
                 case WHILE:

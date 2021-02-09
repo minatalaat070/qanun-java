@@ -85,4 +85,9 @@ public class AstPrinter implements Expr.Visitor<String> {
         return expr.condition.toString() + " ? " + expr.trueCondition.toString() + " : " + expr.falseCondition.toString();
     }
 
+//    @Override
+//    public String visitConstantExpr(Expr.Variable.Constant expr) {
+//        return expr.name.toString();
+//    }
+
 }

@@ -40,6 +40,7 @@ public class GenerateAst {
                 + " Stmt elseBranch",
                 "Print      : Expr expression", // print statement
                 "Var        : Token name, Expr initializer",
+                "Val        : Token name, Expr initializer",
                 "While      : Expr condition, Stmt body"
         ));
     }

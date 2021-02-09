@@ -41,6 +41,7 @@ public class Scanner {
         keywords.put("var", TokenType.VAR);
         keywords.put("while", TokenType.WHILE);
         keywords.put("swich", TokenType.SWITCH);
+        keywords.put("val", TokenType.VAL);
     }
 
     Scanner(String source) {
