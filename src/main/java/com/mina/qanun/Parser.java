@@ -56,9 +56,9 @@ public class Parser {
     private Expr ternaryCondition() {
         Expr expr = or();
         if (match(TokenType.QUESTION_MARK)) {
-            Expr trueCondition = or();
+            Expr trueCondition = ternaryCondition();
             consume(TokenType.COLON, "Expect ':' in ternary operator.");
-            Expr falseCondition = or();
+            Expr falseCondition = ternaryCondition();
             return new Expr.ConditionalTernary(expr, trueCondition, falseCondition);
         }
         return expr;

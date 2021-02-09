@@ -38,10 +38,10 @@ public class Token {
     public int getLine() {
         return line;
     }
-    
+
     @Override
     public String toString() {
-        return "[ Type: "+type + ", Lexeme: " + lexeme + ", Literal: " + literal+" ]";
+        return "[ Type: " + type + ", Lexeme: " + lexeme + ", Literal: " + literal + " ]";
     }
 
 }

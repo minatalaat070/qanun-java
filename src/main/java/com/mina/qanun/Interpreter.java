@@ -199,14 +199,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
     @Override
     public Object visitConditionalTernaryExpr(Expr.ConditionalTernary expr) {
-        Object value = null;
+        Object value;
         if (isTruthy(evaluate(expr.condition))) {
             value = evaluate(expr.trueCondition);
         } else {
             value = evaluate(expr.falseCondition);
-        }
-        if (Qanun.isInRepl) {
-            System.out.println(stringify(value));
         }
         return value;
     }
