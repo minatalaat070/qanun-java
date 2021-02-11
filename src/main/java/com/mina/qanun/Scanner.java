@@ -79,9 +79,9 @@ public class Scanner {
             case '}':
                 // adding implicit semicolon before right brace if not found
                 // fixes the issue of one line block
-                if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
-                    addToken(TokenType.SEMICOLON);
-                }
+//                if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
+//                    addToken(TokenType.SEMICOLON);
+//                }
                 openBrace--;
                 addToken(TokenType.RIGHT_BRACE);
                 break;
@@ -151,39 +151,39 @@ public class Scanner {
                 break;
             case '\n':
                 ++line;
-                if (isEOLinComment) {
-                    isEOLinComment = false;
-                    if (!tokens.isEmpty()
-                            && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
-                            && openParen == 0
-                            && openSquareBrackets == 0
-                            && openBrace == 0) {
-                        addToken(TokenType.SEMICOLON);
-                    }
-                    break;
-                } else if (peekNext() == '\n') {
-                    //ignore if there is a sequance of new lines in raw
-                    break;
-                } else if (peekNext() == '\0') {
-                    if (tokens.size() > 0 && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
-                            && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
-                        // adding implicit semicolon in case of the script is one line 
-                        // for example when input is equivelent to ```print \"Hello\"\nEOF```
-                        // with checking if the last symbol is semecolon and if not add implicit one
-                        addToken(TokenType.SEMICOLON);
-                    }
-                    break;
-                }
-                Token lastToken;
-                if (!tokens.isEmpty()) {
-                    lastToken = tokens.get(tokens.size() - 1);
-                    if (openParen == 0 && openSquareBrackets == 0
-                            && lastToken.getType() != TokenType.SEMICOLON
-                            && lastToken.getType() != TokenType.LEFT_BRACE
-                            && lastToken.getType() != TokenType.RIGHT_BRACE) {
-                        addToken(TokenType.SEMICOLON);
-                    }
-                }
+//                if (isEOLinComment) {
+//                    isEOLinComment = false;
+//                    if (!tokens.isEmpty()
+//                            && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
+//                            && openParen == 0
+//                            && openSquareBrackets == 0
+//                            && openBrace == 0) {
+//                        addToken(TokenType.SEMICOLON);
+//                    }
+//                    break;
+//                } else if (peekNext() == '\n') {
+//                    //ignore if there is a sequance of new lines in raw
+//                    break;
+//                } else if (peekNext() == '\0') {
+//                    if (tokens.size() > 0 && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
+//                            && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
+//                        // adding implicit semicolon in case of the script is one line 
+//                        // for example when input is equivelent to ```print \"Hello\"\nEOF```
+//                        // with checking if the last symbol is semecolon and if not add implicit one
+//                        addToken(TokenType.SEMICOLON);
+//                    }
+//                    break;
+//                }
+//                Token lastToken;
+//                if (!tokens.isEmpty()) {
+//                    lastToken = tokens.get(tokens.size() - 1);
+//                    if (openParen == 0 && openSquareBrackets == 0
+//                            && lastToken.getType() != TokenType.SEMICOLON
+//                            && lastToken.getType() != TokenType.LEFT_BRACE
+//                            && lastToken.getType() != TokenType.RIGHT_BRACE) {
+//                        addToken(TokenType.SEMICOLON);
+//                    }
+//                }
                 break;
             case '\r':
             case ' ':
