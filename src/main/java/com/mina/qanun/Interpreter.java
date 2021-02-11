@@ -5,7 +5,14 @@
  */
 package com.mina.qanun;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  *
@@ -13,7 +20,12 @@ import java.util.List;
  */
 public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
-    private Environment environment = new Environment();
+    final Environment globals = new Environment();
+    private Environment environment = globals;
+
+    public Interpreter() {
+        defineGlobals();
+    }
 
     void interpret(List<Stmt> statements) {
         try {
@@ -80,6 +92,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitCallExpr(Expr.Call expr) {
+        Object callee = evaluate(expr.callee);
+        List<Object> arguments = new ArrayList<>();
+        for (Expr argument : expr.arguments) {
+            arguments.add(evaluate(argument));
+        }
+        if (!(callee instanceof QanunCallable)) {
+            throw new RuntimeError(expr.paren, "Can only call functions and classes.");
+        }
+        QanunCallable function = (QanunCallable) callee;
+        if (arguments.size() != function.arity()) {
+            throw new RuntimeError(expr.paren, "Expected "
+                    + function.arity() + " arguments but got "
+                    + arguments.size() + ".");
+        }
+        return function.call(this, arguments);
+    }
+
+    @Override
     public Object visitGroupingExpr(Expr.Grouping expr) {
         return evaluate(expr.expression);
     }
@@ -122,11 +153,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         return expression.accept(this);
     }
 
-    private void execute(Stmt statement) {
+    void execute(Stmt statement) {
         statement.accept(this);
     }
 
-    private void executeBlock(List<Stmt> statements, Environment environment) {
+    void executeBlock(List<Stmt> statements, Environment environment) {
         Environment previous = this.environment;
         try {
             this.environment = environment;
@@ -156,6 +187,13 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitFunctionStmt(Stmt.Function stmt) {
+        QanunFunction function = new QanunFunction(stmt,this.environment);
+        environment.define(stmt.name, function);
+        return null;
+    }
+
+    @Override
     public Void visitIfStmt(Stmt.If stmt) {
         if (isTruthy(evaluate(stmt.condition))) {
             execute(stmt.thenBranch);
@@ -166,10 +204,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
-    public Void visitPrintStmt(Stmt.Print stmt) {
-        Object value = evaluate(stmt.expression);
-        System.out.println(stringify(value));
-        return null;
+    public Void visitReturnStmt(Stmt.Return stmt) {
+        Object value = null;
+        if(stmt.value!=null){
+            value=evaluate(stmt.value);
+        }
+        throw new Return(value);
     }
 
     @Override
@@ -322,4 +362,270 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         throw new ContinueJump();
     }
 
+    private void defineGlobals() {
+        nativePrint(new Token(TokenType.IDENTIFIER, "print", null, 0));
+        nativePrintln(new Token(TokenType.IDENTIFIER, "println", null, 0));
+        nativeClock(new Token(TokenType.IDENTIFIER, "clock", null, 0));
+        nativeStr(new Token(TokenType.IDENTIFIER, "str", null, 0));
+        nativeLen(new Token(TokenType.IDENTIFIER, "len", null, 0));
+        nativeNum(new Token(TokenType.IDENTIFIER, "num", null, 0));
+        nativeRead(new Token(TokenType.IDENTIFIER, "read", null, 0));
+        nativeReadLine(new Token(TokenType.IDENTIFIER, "readln", null, 0));
+        nativeReadFile(new Token(TokenType.IDENTIFIER, "readFile", null, 0));
+        nativeWriteFile(new Token(TokenType.IDENTIFIER, "writeFile", null, 0));
+        nativeAppendFile(new Token(TokenType.IDENTIFIER, "appendFile", null, 0));
+
+    }
+
+    private void nativePrint(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                System.out.print(stringify(args.get(0)));
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'print'>";
+            }
+        });
+    }
+
+    private void nativePrintln(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                System.out.println(stringify(args.get(0)));
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'println'>";
+            }
+        });
+    }
+
+    private void nativeClock(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                return (double) System.currentTimeMillis() / 1000.0;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'clock'>";
+            }
+        });
+    }
+
+    private void nativeStr(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                return stringify(args.get(0));
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'str'>";
+            }
+        });
+    }
+
+    private void nativeLen(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                Object arg = args.get(0);
+                if (arg instanceof String) {
+                    return stringify(arg).length();
+                } else if (arg != null && args instanceof List) {
+                    return ((List) arg).size();
+                }
+                return null;
+            }
+        });
+    }
+
+    private void nativeNum(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                return Double.parseDouble(stringify(arguments.get(0)));
+            }
+        });
+    }
+
+    private void nativeRead(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                    return Character.toString((char) reader.read());
+                } catch (IOException exception) {
+                }
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'read'>";
+            }
+        });
+
+    }
+
+    private void nativeReadLine(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                try {
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+                    return reader.readLine();
+                } catch (IOException exception) {
+
+                }
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'readln'>";
+            }
+        });
+    }
+
+    private void nativeReadFile(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                String contents;
+                try {
+                    BufferedReader bufferedReader = new BufferedReader(new FileReader(stringify(args.get(0))));
+                    String line;
+                    contents = "";
+                    while ((line = bufferedReader.readLine()) != null) {
+                        contents += line + "\n";
+                    }
+                } catch (IOException exception) {
+                    return null;
+                }
+                if (contents.length() > 0 && contents.charAt(contents.length() - 1) == '\n') {
+                    contents = contents.substring(0, contents.length() - 1);
+                }
+                return contents;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'readFile'>";
+            }
+        });
+    }
+
+    private void nativeWriteFile(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 2;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                try {
+                    try ( // File path is 1st argument
+                             BufferedWriter bw = new BufferedWriter(new FileWriter(stringify(args.get(0))))) {
+                        // Data is 2nd argument
+                        bw.write(stringify(args.get(1)));
+                    }
+                    return true;
+                } catch (IOException exception) {
+                    return false;
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'writefile'>";
+            }
+        }
+        );
+    }
+
+    private void nativeAppendFile(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 2;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> args) {
+                try {
+                    try ( // File path is 1st argument
+                             BufferedWriter bw = new BufferedWriter(new FileWriter(stringify(args.get(0)), true))) {
+                        // Data is 2nd argument
+                        bw.append(stringify(args.get(1)));
+                    }
+                    return true;
+                } catch (IOException exception) {
+                    return false;
+                }
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'appendFile'>";
+            }
+        });
+    }
 }

@@ -18,6 +18,7 @@ public class Scanner {
     private int current = 0;
     private int line = 1;
     private int openParen = 0;
+    private int openBrace = 0;
     private int openSquareBrackets = 0;
     private static final Map<String, TokenType> keywords;
     private boolean isEOLinComment = false;
@@ -33,7 +34,6 @@ public class Scanner {
         keywords.put("if", TokenType.IF);
         keywords.put("nil", TokenType.NIL);
         keywords.put("or", TokenType.OR);
-        keywords.put("print", TokenType.PRINT);
         keywords.put("return", TokenType.RETURN);
         keywords.put("super", TokenType.SUPER);
         keywords.put("this", TokenType.THIS);
@@ -73,14 +73,16 @@ public class Scanner {
                 openParen--;
                 break;
             case '{':
+                openBrace++;
                 addToken(TokenType.LEFT_BRACE);
                 break;
             case '}':
                 // adding implicit semicolon before right brace if not found
                 // fixes the issue of one line block
-                if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON) {
+                if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
                     addToken(TokenType.SEMICOLON);
                 }
+                openBrace--;
                 addToken(TokenType.RIGHT_BRACE);
                 break;
             case '[':
@@ -114,13 +116,14 @@ public class Scanner {
                 break;
             case '/':
                 if (isNextMatches('/')) {
-                    // A comment goes until the end of the line.
                     while (peek() != '\n' && !isAtEnd()) {
                         advance();
                     }
                     if (peek() == '\n') {
                         isEOLinComment = true;
                     }
+                } else if (isNextMatches('=')) {
+                    addToken(TokenType.SLASH_EQUAL);
                 } else {
                     addToken(TokenType.SLASH);
                 }
@@ -150,6 +153,13 @@ public class Scanner {
                 ++line;
                 if (isEOLinComment) {
                     isEOLinComment = false;
+                    if (!tokens.isEmpty()
+                            && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
+                            && openParen == 0
+                            && openSquareBrackets == 0
+                            && openBrace == 0) {
+                        addToken(TokenType.SEMICOLON);
+                    }
                     break;
                 } else if (peekNext() == '\n') {
                     //ignore if there is a sequance of new lines in raw
@@ -164,12 +174,15 @@ public class Scanner {
                     }
                     break;
                 }
-                Token lastToken = tokens.get(tokens.size() - 1);
-                if (openParen == 0 && openSquareBrackets == 0
-                        && lastToken.getType() != TokenType.SEMICOLON
-                        && lastToken.getType() != TokenType.LEFT_BRACE
-                        && lastToken.getType() != TokenType.RIGHT_BRACE) {
-                    addToken(TokenType.SEMICOLON);
+                Token lastToken;
+                if (!tokens.isEmpty()) {
+                    lastToken = tokens.get(tokens.size() - 1);
+                    if (openParen == 0 && openSquareBrackets == 0
+                            && lastToken.getType() != TokenType.SEMICOLON
+                            && lastToken.getType() != TokenType.LEFT_BRACE
+                            && lastToken.getType() != TokenType.RIGHT_BRACE) {
+                        addToken(TokenType.SEMICOLON);
+                    }
                 }
                 break;
             case '\r':
