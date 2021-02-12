@@ -40,12 +40,14 @@ public class Parser {
 
     private Expr assignment() {
         Expr expr = ternaryCondition();
-        if (match(TokenType.EQUAL)) {
+        if (match(TokenType.EQUAL, TokenType.PLUS_EQUAL,
+                TokenType.MINUS_EQUAL, TokenType.STAR_EQUAL,
+                TokenType.SLASH_EQUAL, TokenType.STAR_STAR_EQUAL, TokenType.PERCENTAGE_EQUAL)) {
             Token equals = previous();
             Expr value = assignment();
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
-                return new Expr.Assign(name, value);
+                return new Expr.Assign(name, value, equals);
             }
             error(equals, "Invalid assignment target.");
         }
@@ -181,12 +183,10 @@ public class Parser {
 
     private Stmt varDeclaration() {
         Token name = consume(TokenType.IDENTIFIER, "Expect variable name.");
-
         Expr initializer = null;
         if (match(TokenType.EQUAL)) {
             initializer = expression();
         }
-
         consume(TokenType.SEMICOLON, "Expect ';' or a new line after variable declaration.");
         return new Stmt.Var(name, initializer);
     }
@@ -283,13 +283,11 @@ public class Parser {
 
     private Expr term() {
         Expr expr = factor();
-
         while (match(TokenType.MINUS, TokenType.PLUS)) {
             Token operator = previous();
             Expr right = factor();
             expr = new Expr.Binary(expr, operator, right);
         }
-
         return expr;
     }
 
@@ -301,7 +299,6 @@ public class Parser {
             Expr right = unary();
             expr = new Expr.Binary(expr, operator, right);
         }
-
         return expr;
     }
 
@@ -309,9 +306,38 @@ public class Parser {
         if (match(TokenType.BANG, TokenType.MINUS)) {
             Token operator = previous();
             Expr right = unary();
-            return new Expr.Unary(operator, right);
+            return new Expr.Unary(operator, right, false);
         }
+        return exponenet();
+    }
 
+    private Expr exponenet() {
+        Expr expr = prefix();
+        while (match(TokenType.STAR_STAR)) {
+            Token operator = previous();
+            Expr right = unary();
+            expr = new Expr.Binary(expr, operator, right);
+        }
+        return expr;
+    }
+
+    private Expr prefix() {
+        if (match(TokenType.PLUS_PLUS, TokenType.MINUS_MINUS)) {
+            Token operator = previous();
+            Expr right = primary();
+            return new Expr.Unary(operator, right, false);
+        }
+        return postfix();
+    }
+
+    private Expr postfix() {
+        if (matchNext(TokenType.PLUS_PLUS, TokenType.MINUS_MINUS)) {
+            Token operator = peek();
+            current--;
+            Expr left = primary();
+            advance();
+            return new Expr.Unary(operator, left, true);
+        }
         return call();
     }
 
@@ -377,11 +403,20 @@ public class Parser {
         return false;
     }
 
+    private boolean matchNext(TokenType... types) {
+        for (TokenType type : types) {
+            if (checkNext(type)) {
+                advance();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Token consume(TokenType type, String message) {
         if (check(type)) {
             return advance();
         }
-
         throw error(peek(), message);
     }
 
@@ -390,6 +425,16 @@ public class Parser {
             return false;
         }
         return peek().getType() == type;
+    }
+
+    private boolean checkNext(TokenType tokenType) {
+        if (isAtEnd()) {
+            return false;
+        }
+        if (tokens.get(current + 1).getType() == TokenType.EOF) {
+            return false;
+        }
+        return tokens.get(current + 1).getType() == tokenType;
     }
 
     private Token advance() {
@@ -423,7 +468,6 @@ public class Parser {
             if (previous().getType() == TokenType.SEMICOLON) {
                 return;
             }
-
             switch (peek().getType()) {
                 case CLASS:
                 case FUN:
@@ -433,6 +477,8 @@ public class Parser {
                 case IF:
                 case WHILE:
                 case RETURN:
+                case BREAK:
+                case CONTINUE:
                     return;
             }
 

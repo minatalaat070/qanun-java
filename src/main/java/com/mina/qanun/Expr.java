@@ -27,9 +27,10 @@ abstract class Expr {
 
     static class Assign extends Expr {
 
-        Assign(Token name, Expr value) {
+        Assign(Token name, Expr value, Token equalSign) {
             this.name = name;
             this.value = value;
+            this.equalSign = equalSign;
         }
 
         @Override
@@ -39,6 +40,7 @@ abstract class Expr {
 
         final Token name;
         final Expr value;
+        final Token equalSign;
     }
 
     static class Binary extends Expr {
@@ -125,9 +127,10 @@ abstract class Expr {
 
     static class Unary extends Expr {
 
-        Unary(Token operator, Expr right) {
+        Unary(Token operator, Expr right, boolean isPostFix) {
             this.operator = operator;
             this.right = right;
+            this.isPostFix = isPostFix;
         }
 
         @Override
@@ -137,6 +140,7 @@ abstract class Expr {
 
         final Token operator;
         final Expr right;
+        final boolean isPostFix;
     }
 
     static class Variable extends Expr {

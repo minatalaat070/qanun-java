@@ -181,14 +181,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     public Void visitExpressionStmt(Stmt.Expression stmt) {
         Object value = evaluate(stmt.expression);
         if (Qanun.isInRepl) {
-            System.out.println(stringify(value));
+            if (stmt.expression instanceof Expr.Call) {
+                if (stringify(value).equals("nil")) {
+                    return null;
+                } else {
+                    System.out.println(stringify(value));
+                }
+            } else {
+                System.out.println(stringify(value));
+            }
         }
         return null;
     }
 
     @Override
     public Void visitFunctionStmt(Stmt.Function stmt) {
-        QanunFunction function = new QanunFunction(stmt,this.environment);
+        QanunFunction function = new QanunFunction(stmt, this.environment);
         environment.define(stmt.name, function);
         return null;
     }
@@ -206,8 +214,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Void visitReturnStmt(Stmt.Return stmt) {
         Object value = null;
-        if(stmt.value!=null){
-            value=evaluate(stmt.value);
+        if (stmt.value != null) {
+            value = evaluate(stmt.value);
         }
         throw new Return(value);
     }
@@ -263,6 +271,45 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitAssignExpr(Expr.Assign expr) {
         Object value = evaluate(expr.value);
+        switch (expr.equalSign.getType()) {
+            case PLUS_EQUAL: {
+                Object currentValue = environment.get(expr.name);
+                checkNumberOperands(expr.equalSign, currentValue, value);
+                value = (double) currentValue + (double) value;
+                break;
+            }
+            case MINUS_EQUAL: {
+                Object currentValue = environment.get(expr.name);
+                checkNumberOperands(expr.equalSign, currentValue, value);
+                value = (double) currentValue - (double) value;
+                break;
+            }
+            case STAR_EQUAL: {
+                Object currentValue = environment.get(expr.name);
+                checkNumberOperands(expr.equalSign, currentValue, value);
+                value = (double) currentValue * (double) value;
+                break;
+            }
+            case SLASH_EQUAL: {
+                Object currentValue = environment.get(expr.name);
+                checkNumberOperands(expr.equalSign, currentValue, value);
+                checkDivisionByZero(expr.equalSign, value);
+                value = (double) currentValue / (double) value;
+                break;
+            }
+            case STAR_STAR_EQUAL: {
+                Object currentValue = environment.get(expr.name);
+                checkNumberOperands(expr.equalSign, currentValue, value);
+                value = Math.pow((double) currentValue, (double) value);
+                break;
+            }
+            case PERCENTAGE_EQUAL: {
+                Object currentValue = environment.get(expr.name);
+                checkNumberOperands(expr.equalSign, currentValue, value);
+                value = (double) currentValue % (double) value;
+                break;
+            }
+        }
         environment.assign(expr.name, value);
         return value;
     }
