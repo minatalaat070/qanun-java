@@ -421,6 +421,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         nativeReadFile(new Token(TokenType.IDENTIFIER, "readFile", null, 0));
         nativeWriteFile(new Token(TokenType.IDENTIFIER, "writeFile", null, 0));
         nativeAppendFile(new Token(TokenType.IDENTIFIER, "appendFile", null, 0));
+        nativeClear(new Token(TokenType.IDENTIFIER, "clear", null, 0));
 
     }
 
@@ -512,10 +513,14 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             @Override
             public Object call(Interpreter interpreter, List<Object> args) {
                 Object arg = args.get(0);
-                if (arg instanceof String) {
-                    return stringify(arg).length();
-                } else if (arg != null && args instanceof List) {
-                    return ((List) arg).size();
+                try {
+                    if (arg instanceof String) {
+                        return stringify(arg).length();
+                    } else if (arg != null && args instanceof List) {
+                        return ((List) arg).size();
+                    }
+                } catch (ClassCastException castException) {
+                    throw new RuntimeError(new Token(TokenType.IDENTIFIER, stringify(args.get(0)), stringify(args.get(0)), 0), "Only strings or lists can have length");
                 }
                 return null;
             }
@@ -530,8 +535,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             }
 
             @Override
-            public Object call(Interpreter interpreter, List<Object> arguments) {
-                return Double.parseDouble(stringify(arguments.get(0)));
+            public Object call(Interpreter interpreter, List<Object> args) {
+                try {
+                    return Double.parseDouble(stringify(args.get(0)));
+                } catch (NumberFormatException numberFormatException) {
+                    throw new RuntimeError(new Token(TokenType.IDENTIFIER, stringify(args.get(0)), stringify(args.get(0)), 0), "Only strings with numeric digits can be casted to numbers");
+                }
             }
         });
     }
@@ -672,6 +681,27 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             @Override
             public String toString() {
                 return "<native function 'appendFile'>";
+            }
+        });
+    }
+
+    private void nativeClear(Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 0;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+                return null;
+            }
+
+            @Override
+            public String toString() {
+                return "<native function 'clear'>";
             }
         });
     }
