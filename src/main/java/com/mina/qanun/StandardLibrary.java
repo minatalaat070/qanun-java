@@ -28,6 +28,8 @@ public class StandardLibrary {
         nativeWriteFile(globals, new Token(TokenType.IDENTIFIER, "writeFile", null, 0));
         nativeAppendFile(globals, new Token(TokenType.IDENTIFIER, "appendFile", null, 0));
         nativeClear(globals, new Token(TokenType.IDENTIFIER, "clear", null, 0));
+        nativeType(globals, new Token(TokenType.IDENTIFIER, "type", null, 0));
+
     }
 
     private static void nativePrint(Environment globals, Token token) {
@@ -307,6 +309,34 @@ public class StandardLibrary {
             @Override
             public String toString() {
                 return "<native function 'clear'>";
+            }
+        });
+    }
+
+    private static void nativeType(Environment globals, Token token) {
+        globals.define(token, new QanunCallable() {
+            @Override
+            public int arity() {
+                return 1;
+            }
+
+            @Override
+            public Object call(Interpreter interpreter, List<Object> arguments) {
+                if (arguments.get(0) instanceof String) {
+                    return "string";
+                } else if (arguments.get(0) instanceof Double) {
+                    return "double";
+                } else if (arguments.get(0) instanceof Boolean) {
+                    return "boolean";
+                } else if (arguments.get(0) instanceof QanunCallable) {
+                    return "native function";
+                } else if (arguments.get(0) instanceof QanunFunction) {
+                    return "function";
+                } else if (arguments.get(0) == null) {
+                    return "nil";
+                } else {
+                    return "unknown";
+                }
             }
         });
     }

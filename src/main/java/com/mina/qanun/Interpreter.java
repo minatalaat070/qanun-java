@@ -205,7 +205,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         Object value = evaluate(stmt.expression);
         if (Qanun.isInRepl) {
             if (stmt.expression instanceof Expr.Call) {
-                if (stringify(value).equals("nil")) {
+                if (value == null) {
                     return null;
                 } else {
                     System.out.println(stringify(value));
