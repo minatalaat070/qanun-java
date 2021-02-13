@@ -120,9 +120,9 @@ public class StandardLibrary {
                 Object arg = args.get(0);
                 try {
                     if (arg instanceof String) {
-                        return interpreter.stringify(arg).length();
+                        return (double) interpreter.stringify(arg).length();
                     } else if (arg != null && args instanceof List) {
-                        return ((List) arg).size();
+                        return (double) ((List) arg).size();
                     }
                 } catch (ClassCastException castException) {
                     throw new RuntimeError(new Token(TokenType.IDENTIFIER, interpreter.stringify(args.get(0)), interpreter.stringify(args.get(0)), 0), "Only strings or lists can have length");
