@@ -42,6 +42,38 @@ public class Environment {
                 "Error: Undefined variable or undefined constant '" + name.getLexeme() + "'.");
     }
 
+    // this seems kinda wrong or maybe not we w'll see
+    Object getAt(int distance, Token name) {
+        Environment environment = ancestor(distance);
+        if (environment.variblesValues.containsKey(name.getLexeme())) {
+            return environment.variblesValues.get(name.getLexeme());
+        }
+        if (environment.constantValues.containsKey(name.getLexeme())) {
+            return environment.constantValues.get(name.getLexeme());
+        }
+        throw new RuntimeError(name,
+                "Error: Undefined variable or undefined constant '" + name.getLexeme() + "'.");
+    }
+
+    void assignAt(int distance, Token name, Object value) {
+        Environment environment = ancestor(distance);
+        if (environment.variblesValues.containsKey(name.getLexeme())) {
+            environment.variblesValues.put(name.getLexeme(), value);
+        }
+        if (environment.constantValues.containsKey(name.getLexeme())) {
+            throw new RuntimeError(name, "Assignment of constant variable '" + name.getLexeme() + "'");
+        }
+    }
+
+    Environment ancestor(int distance) {
+        Environment environment = this;
+        for (int i = 0; i < distance; i++) {
+            environment = environment.enclosing;
+        }
+
+        return environment;
+    }
+
     void assign(Token name, Object value) {
         if (constantValues.containsKey(name.getLexeme())) {
             throw new RuntimeError(name, "Assignment of constant variable '" + name.getLexeme() + "'");

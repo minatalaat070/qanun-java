@@ -221,7 +221,7 @@ public class Parser {
                 if (parameters.size() >= 255) {
                     error(peek(), "Can't have more than 255 parameters.");
                 }
-
+                
                 parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
             } while (match(TokenType.COMMA));
         }
