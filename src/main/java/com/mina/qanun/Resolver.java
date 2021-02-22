@@ -19,6 +19,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
         NONE,
         FUNCTION
     }
+
     public Resolver(Interpreter interpreter) {
         this.interpreter = interpreter;
     }
@@ -34,6 +35,14 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     public Void visitBinaryExpr(Expr.Binary expr) {
         resolve(expr.left);
         resolve(expr.right);
+        return null;
+    }
+
+    @Override
+    public Void visitQanunListExpr(Expr.QanunList expr) {
+        for (Expr expression : expr.list) {
+            resolve(expression);
+        }
         return null;
     }
 
@@ -67,6 +76,13 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Void visitListAccessorExpr(Expr.ListAccessor expr) {
+        resolve(expr.object);
+        resolve(expr.index);
+        return null;
+    }
+
+    @Override
     public Void visitUnaryExpr(Expr.Unary expr) {
         resolve(expr.right);
         return null;
@@ -83,7 +99,11 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
     @Override
     public Void visitConditionalTernaryExpr(Expr.ConditionalTernary expr) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        resolve(expr.condition);
+        resolve(expr.trueCondition);
+        resolve(expr.falseCondition);
+        return null;
+
     }
 
     @Override

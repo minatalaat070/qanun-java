@@ -131,6 +131,11 @@ public class StandardLibrary {
                 }
                 return null;
             }
+
+            @Override
+            public String toString() {
+                return "<native function 'len'>";
+            }
         });
     }
 
@@ -148,6 +153,10 @@ public class StandardLibrary {
                 } catch (NumberFormatException numberFormatException) {
                     throw new RuntimeError(new Token(TokenType.IDENTIFIER, interpreter.stringify(args.get(0)), interpreter.stringify(args.get(0)), 0), "Only strings with numeric digits can be casted to numbers");
                 }
+            }
+            @Override
+            public String toString() {
+                return "<native function 'num'>";
             }
         });
     }
@@ -332,11 +341,17 @@ public class StandardLibrary {
                     return "native function";
                 } else if (arguments.get(0) instanceof QanunFunction) {
                     return "function";
+                } else if (arguments.get(0) instanceof List) {
+                    return "list";
                 } else if (arguments.get(0) == null) {
                     return "nil";
                 } else {
                     return "unknown";
                 }
+            }
+            @Override
+            public String toString() {
+                return "<native function 'type'>";
             }
         });
     }

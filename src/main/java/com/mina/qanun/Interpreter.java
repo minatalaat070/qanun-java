@@ -61,9 +61,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 if (left instanceof String && right instanceof String) {
                     return (String) left + (String) right;
                 }
-
+                if (left instanceof List && right instanceof List) {
+                    List leftCasted = (List) left;
+                    List tmp = new ArrayList();
+                    for (Object object : leftCasted) {
+                        tmp.add(object);
+                    }
+                    tmp.addAll((List) right);
+                    return tmp;
+                }
                 throw new RuntimeError(expr.operator,
-                        "Operands must be two numbers or two strings.");
+                        "Operands must be two numbers or two strings or two lists.");
             case SLASH:
                 checkNumberOperands(expr.operator, left, right);
                 checkDivisionByZero(expr.operator, right);
@@ -103,6 +111,35 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     }
 
     @Override
+    public Object visitListAccessorExpr(Expr.ListAccessor expr) {
+        Object listObject = evaluate(expr.object);
+        if (!(listObject instanceof List)) {
+            throw new RuntimeError(expr.name,
+                    "Not List to access.");
+        }
+
+        List list = (List) listObject;
+
+        Object indexObject = evaluate(expr.index);
+        if (!(indexObject instanceof Double)) {
+            throw new RuntimeError(expr.name,
+                    "Only numbers can be used as a list index.");
+        }
+        int indexInt = ((Double) indexObject).intValue();
+        double diff = (Double) indexObject - indexInt;
+        if (diff != 0) {
+            throw new RuntimeError(expr.name,
+                    "Indecies can only be integer values, not double");
+        }
+        if (indexInt >= list.size()) {
+            throw new RuntimeError(expr.name,
+                    "List index out of range.");
+        }
+
+        return list.get(indexInt);
+    }
+
+    @Override
     public Object visitGroupingExpr(Expr.Grouping expr) {
         return evaluate(expr.expression);
     }
@@ -110,6 +147,15 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitLiteralExpr(Expr.Literal expr) {
         return expr.value;
+    }
+
+    @Override
+    public Object visitQanunListExpr(Expr.QanunList expr) {
+        List<Object> list = new ArrayList<>();
+        for (Expr expression : expr.list) {
+            list.add(evaluate(expression));
+        }
+        return list;
     }
 
     @Override
@@ -304,9 +350,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
         switch (expr.equalSign.getType()) {
             case PLUS_EQUAL: {
                 Object currentValue = environment.get(expr.name);
-                checkNumberOperands(expr.equalSign, currentValue, value);
-                value = (double) currentValue + (double) value;
-                break;
+                //checkNumberOperands(expr.equalSign, currentValue, value);
+                if (value instanceof Double && currentValue instanceof Double) {
+                    value = (double) currentValue + (double) value;
+                    break;
+                } else if (value instanceof List && currentValue instanceof List) {
+                    ((List) currentValue).addAll((List) value);
+                    value = currentValue;
+                    break;
+                } else {
+                    throw new RuntimeError(expr.equalSign, "Operands must be numbers or lists");
+                }
             }
             case MINUS_EQUAL: {
                 Object currentValue = environment.get(expr.name);
@@ -442,6 +496,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
                 text = text.substring(0, text.length() - 2);
             }
             return text;
+        }
+        if (object instanceof List) {
+            return object.toString().replaceAll("null", "nil");
         }
 
         return object.toString();

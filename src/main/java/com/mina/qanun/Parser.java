@@ -221,7 +221,7 @@ public class Parser {
                 if (parameters.size() >= 255) {
                     error(peek(), "Can't have more than 255 parameters.");
                 }
-                
+
                 parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
             } while (match(TokenType.COMMA));
         }
@@ -338,9 +338,15 @@ public class Parser {
 
     private Expr call() {
         Expr expr = primary();
+        Token exprName = previous();
         while (true) {
             if (match(TokenType.LEFT_PAREN)) {
                 expr = finishCall(expr);
+            } else if (match(TokenType.LEFT_SQUARE_BRACKET)) {
+                Expr index = primary();
+                consume(TokenType.RIGHT_SQUARE_BRACKET,
+                        "Expected ']' after subscript index.");
+                expr = new Expr.ListAccessor(expr, exprName, index);
             } else {
                 break;
             }
@@ -384,6 +390,16 @@ public class Parser {
             Expr expr = expression();
             consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
             return new Expr.Grouping(expr);
+        }
+        if (match(TokenType.LEFT_SQUARE_BRACKET)) {
+            List<Expr> items = new ArrayList<>();
+            if (!check(TokenType.RIGHT_SQUARE_BRACKET)) {
+                do {
+                    items.add(expression());
+                } while (match(TokenType.COMMA));
+            }
+            consume(TokenType.RIGHT_SQUARE_BRACKET, "Expect ']' after list.");
+            return new Expr.QanunList(items);
         }
         throw error(peek(), "Expect expression.");
     }

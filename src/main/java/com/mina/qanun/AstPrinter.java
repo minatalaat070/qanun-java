@@ -85,4 +85,14 @@ public class AstPrinter implements Expr.Visitor<String> {
         return expr.callee.toString() + " " + expr.paren.getLexeme() + " " + expr.arguments.toString();
     }
 
+    @Override
+    public String visitQanunListExpr(Expr.QanunList expr) {
+        return expr.list.toString();
+    }
+
+    @Override
+    public String visitListAccessorExpr(Expr.ListAccessor expr) {
+        return expr.name.toString() + "[" + expr.index.toString() + "]";
+    }
+
 }
