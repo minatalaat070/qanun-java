@@ -11,7 +11,7 @@ public class QanunFunction implements QanunCallable {
     private final Stmt.Function declaration;
     private final Environment closure;
 
-    public QanunFunction(Stmt.Function declaration,Environment closure) {
+    public QanunFunction(Stmt.Function declaration, Environment closure) {
         this.declaration = declaration;
         this.closure = closure;
     }

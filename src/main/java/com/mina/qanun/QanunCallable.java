@@ -9,6 +9,7 @@ import java.util.List;
 public interface QanunCallable {
 
     public int arity();
+
     Object call(Interpreter interpreter, List<Object> arguments);
 
 }

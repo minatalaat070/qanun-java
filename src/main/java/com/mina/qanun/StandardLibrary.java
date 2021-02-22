@@ -154,6 +154,7 @@ public class StandardLibrary {
                     throw new RuntimeError(new Token(TokenType.IDENTIFIER, interpreter.stringify(args.get(0)), interpreter.stringify(args.get(0)), 0), "Only strings with numeric digits can be casted to numbers");
                 }
             }
+
             @Override
             public String toString() {
                 return "<native function 'num'>";
@@ -349,6 +350,7 @@ public class StandardLibrary {
                     return "unknown";
                 }
             }
+
             @Override
             public String toString() {
                 return "<native function 'type'>";
