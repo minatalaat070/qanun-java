@@ -95,4 +95,9 @@ public class AstPrinter implements Expr.Visitor<String> {
         return expr.name.toString() + "[" + expr.index.toString() + "]";
     }
 
+    @Override
+    public String visitListMutatorExpr(Expr.ListMutator expr) {
+        return expr.name + " " + expr.object + " " + expr.value;
+    }
+
 }

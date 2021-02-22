@@ -43,6 +43,9 @@ public class Parser {
             if (expr instanceof Expr.Variable) {
                 Token name = ((Expr.Variable) expr).name;
                 return new Expr.Assign(name, value, equals);
+            } else if (expr instanceof Expr.ListAccessor) {
+                Token name = ((Expr.ListAccessor) expr).name;
+                return new Expr.ListMutator(expr, name, value);
             }
             error(equals, "Invalid assignment target.");
         }

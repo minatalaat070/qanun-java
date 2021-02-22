@@ -29,6 +29,7 @@ public class GenerateAst {
                 "Call     : Expr callee, Token paren, List<Expr> arguments",
                 "Grouping : Expr expression",
                 "ListAccessor: Expr object, Token name, Expr index  ",
+                "ListMutator : Expr object, Token name, Expr value",
                 "Literal  : Object value",
                 "QanunList: List<Expr> list",
                 "Logical  : Expr left, Token operator, Expr right",

@@ -131,12 +131,45 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
             throw new RuntimeError(expr.name,
                     "Indecies can only be integer values, not double");
         }
-        if (indexInt >= list.size()) {
+        if (indexInt >= list.size() || indexInt < 0) {
             throw new RuntimeError(expr.name,
                     "List index out of range.");
         }
 
         return list.get(indexInt);
+    }
+
+    @Override
+    public Object visitListMutatorExpr(Expr.ListMutator expr) {
+        Expr.ListAccessor accessor = null;
+        if (expr.object instanceof Expr.ListAccessor) {
+            accessor = (Expr.ListAccessor) expr.object;
+        }
+        Object listObject = evaluate(accessor.object);
+        if (!(listObject instanceof List)) {
+            throw new RuntimeError(expr.name,
+                    "Not List to mutate by list accessor.");
+        }
+        List list = (List) listObject;
+
+        Object indexObject = evaluate(accessor.index);
+        if (!(indexObject instanceof Double)) {
+            throw new RuntimeError(expr.name,
+                    "Only numbers can be used as a list index.");
+        }
+        int indexInt = ((Double) indexObject).intValue();
+        double diff = (Double) indexObject - indexInt;
+        if (diff != 0) {
+            throw new RuntimeError(expr.name,
+                    "Indecies can only be integer values, not double");
+        }
+        if (indexInt >= list.size() || indexInt < 0) {
+            throw new RuntimeError(expr.name,
+                    "List index out of range.");
+        }
+        Object value = evaluate(expr.value);
+        list.set(indexInt, value);
+        return value;
     }
 
     @Override

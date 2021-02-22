@@ -16,6 +16,8 @@ abstract class Expr {
 
         R visitListAccessorExpr(ListAccessor expr);
 
+        R visitListMutatorExpr(ListMutator expr);
+
         R visitLiteralExpr(Literal expr);
 
         R visitQanunListExpr(QanunList expr);
@@ -113,6 +115,24 @@ abstract class Expr {
         final Expr object;
         final Token name;
         final Expr index;
+    }
+
+    static class ListMutator extends Expr {
+
+        ListMutator(Expr object, Token name, Expr value) {
+            this.object = object;
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        <R> R accept(Visitor<R> visitor) {
+            return visitor.visitListMutatorExpr(this);
+        }
+
+        final Expr object;
+        final Token name;
+        final Expr value;
     }
 
     static class Literal extends Expr {
