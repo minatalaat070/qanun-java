@@ -113,30 +113,49 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
     @Override
     public Object visitListAccessorExpr(Expr.ListAccessor expr) {
         Object listObject = evaluate(expr.object);
-        if (!(listObject instanceof List)) {
-            throw new RuntimeError(expr.name,
-                    "Not List to access.");
-        }
+        if (listObject instanceof List) {
+            List list = (List) listObject;
 
-        List list = (List) listObject;
+            Object indexObject = evaluate(expr.index);
+            if (!(indexObject instanceof Double)) {
+                throw new RuntimeError(expr.name,
+                        "Only numbers can be used as a list index.");
+            }
+            int indexInt = ((Double) indexObject).intValue();
+            double diff = (Double) indexObject - indexInt;
+            if (diff != 0) {
+                throw new RuntimeError(expr.name,
+                        "Indecies can only be integer values, not double");
+            }
+            if (indexInt >= list.size() || indexInt < 0) {
+                throw new RuntimeError(expr.name,
+                        "List index out of range.");
+            }
+            return list.get(indexInt);
 
-        Object indexObject = evaluate(expr.index);
-        if (!(indexObject instanceof Double)) {
+        } else if (listObject instanceof String) {
+            String string = (String) listObject;
+            Object indexObject = evaluate(expr.index);
+            if (!(indexObject instanceof Double)) {
+                throw new RuntimeError(expr.name,
+                        "Only numbers can be used as a list index.");
+            }
+            int indexInt = ((Double) indexObject).intValue();
+            double diff = (Double) indexObject - indexInt;
+            if (diff != 0) {
+                throw new RuntimeError(expr.name,
+                        "Indecies can only be integer values, not double");
+            }
+            if (indexInt >= string.length() || indexInt < 0) {
+                throw new RuntimeError(expr.name,
+                        "List index out of range.");
+            }
+            return Character.toString(string.charAt(indexInt));
+            
+        } else {
             throw new RuntimeError(expr.name,
-                    "Only numbers can be used as a list index.");
+                    "Not List or String to access.");
         }
-        int indexInt = ((Double) indexObject).intValue();
-        double diff = (Double) indexObject - indexInt;
-        if (diff != 0) {
-            throw new RuntimeError(expr.name,
-                    "Indecies can only be integer values, not double");
-        }
-        if (indexInt >= list.size() || indexInt < 0) {
-            throw new RuntimeError(expr.name,
-                    "List index out of range.");
-        }
-
-        return list.get(indexInt);
     }
 
     @Override
