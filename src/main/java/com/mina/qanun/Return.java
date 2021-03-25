@@ -6,14 +6,14 @@ package com.mina.qanun;
  */
 public class Return extends RuntimeException {
 
-    private final Object value;
+	private final Object value;
 
-    Return(Object value) {
-        super(null, null, false, false);
-        this.value = value;
-    }
+	Return(Object value) {
+		super(null, null, false, false);
+		this.value = value;
+	}
 
-    Object getValue() {
-        return this.value;
-    }
+	Object getValue() {
+		return this.value;
+	}
 }

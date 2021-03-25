@@ -49,6 +49,7 @@ public class GenerateAst {
                 "Val        : Token name, Expr initializer",
                 "While      : Expr condition, Stmt body",
                 "For        : Stmt init, Expr condition, Expr increment, Stmt body",
+                "ForEach    : Stmt init, Expr iterable, Stmt body",
                 "Break      : Token name",
                 "Continue   : Token name"
         ));
