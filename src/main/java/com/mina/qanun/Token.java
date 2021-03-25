@@ -6,37 +6,37 @@ package com.mina.qanun;
  */
 public class Token {
 
-    private final TokenType type;
-    private final String lexeme;
-    private final Object literal;
-    private final int line;
+	private final TokenType type;
+	private final String lexeme;
+	private final Object literal;
+	private final int line;
 
-    Token(TokenType type, String lexeme, Object literal, int line) {
-        this.type = type;
-        this.lexeme = lexeme;
-        this.literal = literal;
-        this.line = line;
-    }
+	Token(TokenType type, String lexeme, Object literal, int line) {
+		this.type = type;
+		this.lexeme = lexeme;
+		this.literal = literal;
+		this.line = line;
+	}
 
-    public TokenType getType() {
-        return type;
-    }
+	public TokenType getType() {
+		return type;
+	}
 
-    public String getLexeme() {
-        return lexeme;
-    }
+	public String getLexeme() {
+		return lexeme;
+	}
 
-    public Object getLiteral() {
-        return literal;
-    }
+	public Object getLiteral() {
+		return literal;
+	}
 
-    public int getLine() {
-        return line;
-    }
+	public int getLine() {
+		return line;
+	}
 
-    @Override
-    public String toString() {
-        return "[ Type: " + type + ", Lexeme: " + lexeme + ", Literal: " + literal + " ]";
-    }
+	@Override
+	public String toString() {
+		return "[ Type: " + type + ", Lexeme: " + lexeme + ", Literal: " + literal + " ]";
+	}
 
 }

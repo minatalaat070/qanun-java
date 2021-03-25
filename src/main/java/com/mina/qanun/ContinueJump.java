@@ -6,8 +6,8 @@ package com.mina.qanun;
  */
 public class ContinueJump extends RuntimeException {
 
-    public ContinueJump() {
-        super("Continue Jump");
-    }
+	public ContinueJump() {
+		super("Continue Jump");
+	}
 
 }

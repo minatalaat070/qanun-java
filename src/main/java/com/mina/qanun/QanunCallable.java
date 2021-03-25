@@ -8,8 +8,8 @@ import java.util.List;
  */
 public interface QanunCallable {
 
-    public int arity();
+	public int arity();
 
-    Object call(Interpreter interpreter, List<Object> arguments);
+	Object call(Interpreter interpreter, List<Object> arguments);
 
 }

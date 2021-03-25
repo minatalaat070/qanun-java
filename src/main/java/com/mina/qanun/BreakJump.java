@@ -6,8 +6,8 @@ package com.mina.qanun;
  */
 public class BreakJump extends RuntimeException {
 
-    public BreakJump() {
-        super("Break Jump");
-    }
+	public BreakJump() {
+		super("Break Jump");
+	}
 
 }
