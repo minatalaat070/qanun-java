@@ -201,7 +201,7 @@ public class Parser {
 		if (match(TokenType.EQUAL)) {
 			initializer = expression();
 		}
-		consume(TokenType.SEMICOLON, "Expect ';' or a new line after variable declaration.");
+		consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
 		return new Stmt.Var(name, initializer);
 	}
 
@@ -217,8 +217,10 @@ public class Parser {
 		Expr initializer = null;
 		if (match(TokenType.EQUAL)) {
 			initializer = expression();
+		} else {
+			Qanun.error(name, "constant varaibles must be initialized");
 		}
-		consume(TokenType.SEMICOLON, "Expect ';' or a new line after constant declaration.");
+		consume(TokenType.SEMICOLON, "Expect ';' after constant declaration.");
 		return new Stmt.Val(name, initializer);
 	}
 
@@ -234,7 +236,7 @@ public class Parser {
 
 	private Stmt expressionStatement() {
 		Expr expr = expression();
-		consume(TokenType.SEMICOLON, "Expect ';' or a new line after expression.");
+		consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 		return new Stmt.Expression(expr);
 	}
 
@@ -261,7 +263,7 @@ public class Parser {
 		if (loopDepth == 0) {
 			throw error(previous(), "'break' must be used inside a loop");
 		}
-		consume(TokenType.SEMICOLON, "Expect ';' or a new line after break.");
+		consume(TokenType.SEMICOLON, "Expect ';' after break.");
 		return new Stmt.Break(previous());
 	}
 
@@ -269,7 +271,7 @@ public class Parser {
 		if (loopDepth == 0) {
 			throw error(previous(), "'continue' must be used inside a loop");
 		}
-		consume(TokenType.SEMICOLON, "Expect ';' or a new line after continue.");
+		consume(TokenType.SEMICOLON, "Expect ';' after continue.");
 		return new Stmt.Continue(previous());
 	}
 

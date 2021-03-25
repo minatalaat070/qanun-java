@@ -184,10 +184,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitForStmt(Stmt.For stmt) {
-		resolve(stmt.init);
-		resolve(stmt.condition);
+		if (stmt.init != null) {
+			resolve(stmt.init);
+		}
+		if (stmt.condition != null) {
+			resolve(stmt.condition);
+		}
 		resolve(stmt.body);
-		resolve(stmt.increment);
+		if (stmt.increment != null) {
+			resolve(stmt.increment);
+		}
 		return null;
 	}
 
