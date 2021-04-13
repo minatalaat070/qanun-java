@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.mina.qanun.TokenType;
 
 /**
  *
@@ -17,11 +16,7 @@ public class Scanner {
 	private int start = 0;
 	private int current = 0;
 	private int line = 1;
-	private int openParen = 0;
-	private int openBrace = 0;
-	private int openSquareBrackets = 0;
 	private static final Map<String, TokenType> keywords;
-	private boolean isEOLinComment = false;
 
 	static {
 		keywords = new HashMap<>();
@@ -66,32 +61,21 @@ public class Scanner {
 		switch (c) {
 			case '(':
 				addToken(TokenType.LEFT_PAREN);
-				openParen++;
 				break;
 			case ')':
 				addToken(TokenType.RIGHT_PAREN);
-				openParen--;
 				break;
 			case '{':
-				openBrace++;
 				addToken(TokenType.LEFT_BRACE);
 				break;
 			case '}':
-				// adding implicit semicolon before right brace if not found
-				// fixes the issue of one line block
-//                if (tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
-//                    addToken(TokenType.SEMICOLON);
-//                }
-				openBrace--;
 				addToken(TokenType.RIGHT_BRACE);
 				break;
 			case '[':
 				addToken(TokenType.LEFT_SQUARE_BRACKET);
-				openSquareBrackets++;
 				break;
 			case ']':
 				addToken(TokenType.RIGHT_SQUARE_BRACKET);
-				openSquareBrackets--;
 				break;
 			case ',':
 				addToken(TokenType.COMMA);
@@ -118,9 +102,6 @@ public class Scanner {
 				if (isNextMatches('/')) {
 					while (peek() != '\n' && !isAtEnd()) {
 						advance();
-					}
-					if (peek() == '\n') {
-						isEOLinComment = true;
 					}
 				} else if (isNextMatches('=')) {
 					addToken(TokenType.SLASH_EQUAL);
@@ -151,39 +132,6 @@ public class Scanner {
 				break;
 			case '\n':
 				++line;
-//                if (isEOLinComment) {
-//                    isEOLinComment = false;
-//                    if (!tokens.isEmpty()
-//                            && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
-//                            && openParen == 0
-//                            && openSquareBrackets == 0
-//                            && openBrace == 0) {
-//                        addToken(TokenType.SEMICOLON);
-//                    }
-//                    break;
-//                } else if (peekNext() == '\n') {
-//                    //ignore if there is a sequance of new lines in raw
-//                    break;
-//                } else if (peekNext() == '\0') {
-//                    if (tokens.size() > 0 && tokens.get(tokens.size() - 1).getType() != TokenType.SEMICOLON
-//                            && tokens.get(tokens.size() - 1).getType() != TokenType.RIGHT_BRACE) {
-//                        // adding implicit semicolon in case of the script is one line 
-//                        // for example when input is equivelent to ```print \"Hello\"\nEOF```
-//                        // with checking if the last symbol is semecolon and if not add implicit one
-//                        addToken(TokenType.SEMICOLON);
-//                    }
-//                    break;
-//                }
-//                Token lastToken;
-//                if (!tokens.isEmpty()) {
-//                    lastToken = tokens.get(tokens.size() - 1);
-//                    if (openParen == 0 && openSquareBrackets == 0
-//                            && lastToken.getType() != TokenType.SEMICOLON
-//                            && lastToken.getType() != TokenType.LEFT_BRACE
-//                            && lastToken.getType() != TokenType.RIGHT_BRACE) {
-//                        addToken(TokenType.SEMICOLON);
-//                    }
-//                }
 				break;
 			case '\r':
 			case ' ':

@@ -111,9 +111,11 @@ public class Parser {
 		consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 		List<Stmt.Function> methods = new ArrayList<>();
 		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-			//if (match(TokenType.FUN)) {
-			methods.add(function("method"));
-			//}
+			if (match(TokenType.FUN)) {
+				methods.add(function("method"));
+			} else {
+				throw error(peek(), "Expect 'fun' keword before '" + peek().getLexeme() + "' method declaration");
+			}
 		}
 		consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
 		return new Stmt.Class(name, methods);
