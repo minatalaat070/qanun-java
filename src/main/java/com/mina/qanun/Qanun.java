@@ -15,7 +15,7 @@ import java.util.List;
 public class Qanun {
 
 	public enum Error {
-		EX_USAGE(64), EX_DATAERR(65), EX_SOFTWARE(70);
+		EX_USAGE(64), EX_DATAERR(65), EX_SOFTWARE(70), EX_GENERAL(1);
 
 		private final int code;
 
@@ -34,7 +34,7 @@ public class Qanun {
 
 	public static void main(String[] args) throws IOException {
 		if (args.length > 1) {
-			System.err.println("Usage qanun [script]");
+			System.err.println("Usage: qanun [script.qan | script.qanun]");
 			System.exit(Error.EX_USAGE.getCode());
 		} else if (args.length == 1) {
 			isInRepl = false;
@@ -46,6 +46,11 @@ public class Qanun {
 	}
 
 	private static void runFile(String path) throws IOException {
+		boolean isDotQanFile = Paths.get(path).getFileName().toString().matches("([a-zA-z1-9]+\\.)+(qanun|qan)$");
+		if (!isDotQanFile) {
+			System.err.println("Error: Qanun file should end with .qan or .qanun file extension");
+			System.exit(Error.EX_GENERAL.getCode());
+		}
 		byte[] bytes = Files.readAllBytes(Paths.get(path));
 		run(new String(bytes, Charset.defaultCharset()));
 		if (hadError) {
@@ -57,7 +62,7 @@ public class Qanun {
 	}
 
 	private static void runPrompt() throws IOException {
-		try (InputStreamReader input = new InputStreamReader(System.in); BufferedReader reader = new BufferedReader(input)) {
+		try ( InputStreamReader input = new InputStreamReader(System.in);  BufferedReader reader = new BufferedReader(input)) {
 			for (;;) {
 				System.out.print("Qanun>> ");
 				String line = reader.readLine();
@@ -101,7 +106,7 @@ public class Qanun {
 	}
 
 	static void runtimeError(RuntimeError error) {
-		System.err.println("[line " + error.token.getLine() + "] "+error.getMessage());
+		System.err.println("[line " + error.token.getLine() + "] " + error.getMessage());
 		hadRuntimeError = true;
 	}
 
