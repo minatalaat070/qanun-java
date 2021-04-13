@@ -101,8 +101,7 @@ public class Qanun {
 	}
 
 	static void runtimeError(RuntimeError error) {
-		System.err.println(error.getMessage()
-				+ "\n[line " + error.token.getLine() + "]");
+		System.err.println("[line " + error.token.getLine() + "] "+error.getMessage());
 		hadRuntimeError = true;
 	}
 

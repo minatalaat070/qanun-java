@@ -111,6 +111,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Object visitGetExpr(Expr.Get expr) {
+		Object object = evaluate(expr.object);
+		if (object instanceof QanunInstance) {
+			return ((QanunInstance) object).get(expr.name);
+		}
+		throw new RuntimeError(expr.name,
+				"Only instances have properties.");
+	}
+
+	@Override
 	public Object visitListAccessorExpr(Expr.ListAccessor expr) {
 		Object listObject = evaluate(expr.object);
 		if (listObject instanceof List) {
@@ -226,6 +236,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Object visitSetExpr(Expr.Set expr) {
+		Object object = evaluate(expr.object);
+		if (!(object instanceof QanunInstance)) {
+			throw new RuntimeError(expr.name, "Only instances have fields.");
+		}
+		Object value = evaluate(expr.value);
+		((QanunInstance) object).set(expr.name, value);
+		return value;
+	}
+
+	@Override
+	public Object visitThisExpr(Expr.This expr) {
+		return lookUpVariable(expr.keyword, expr);
+	}
+
+	@Override
 	public Object visitUnaryExpr(Expr.Unary expr) {
 		Object right = evaluate(expr.right);
 		switch (expr.operator.getType()) {
@@ -306,6 +332,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitClassStmt(Stmt.Class stmt) {
+		environment.define(stmt.name, null);
+		Map<String, QanunFunction> methods = new HashMap<>();
+		for (Stmt.Function method : stmt.methods) {
+			QanunFunction qanunFunction = new QanunFunction(method, this.environment,
+					"init".equals(method.name.getLexeme()));
+			methods.put(method.name.getLexeme(), qanunFunction);
+		}
+		QanunClass qanunClass = new QanunClass(stmt.name.getLexeme(), methods);
+		environment.assign(stmt.name, qanunClass);
+		return null;
+	}
+
+	@Override
 	public Void visitExpressionStmt(Stmt.Expression stmt) {
 		Object value = evaluate(stmt.expression);
 		if (Qanun.isInRepl) {
@@ -324,7 +364,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitFunctionStmt(Stmt.Function stmt) {
-		QanunFunction function = new QanunFunction(stmt, this.environment);
+		QanunFunction function = new QanunFunction(stmt, this.environment, false);
 		environment.define(stmt.name, function);
 		return null;
 	}
@@ -435,6 +475,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Object visitAssignExpr(Expr.Assign expr) {
 		Object value = evaluate(expr.value);
+
 		switch (expr.equalSign.getType()) {
 			case PLUS_EQUAL: {
 				Object currentValue = environment.get(expr.name);
@@ -482,8 +523,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				break;
 			}
 		}
-		Integer distance = locals.get(expr);
-		if (distance != null) {
+		//Integer distance = locals.get(expr);
+		if (locals.containsKey(expr)) {
+			int distance = locals.get(expr);
 			environment.assignAt(distance, expr.name, value);
 		} else {
 			globals.assign(expr.name, value);
@@ -508,8 +550,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	private Object lookUpVariable(Token name, Expr expr) {
-		Integer distance = locals.get(expr);
-		if (distance != null) {
+		//Integer distance = locals.get(expr);
+		if (locals.containsKey(expr)) {
+			int distance = locals.get(expr);
 			return environment.getAt(distance, name);
 		} else {
 			return globals.get(name);

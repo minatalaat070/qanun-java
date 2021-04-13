@@ -2,7 +2,6 @@ package com.mina.qanun;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 
 /**
  *
@@ -15,7 +14,6 @@ public class Parser {
 
 	private final List<Token> tokens;
 	private int current;
-	private int loopDepth = 0;
 
 	public Parser(List<Token> tokens) {
 		this.tokens = tokens;
@@ -43,6 +41,9 @@ public class Parser {
 			if (expr instanceof Expr.Variable) {
 				Token name = ((Expr.Variable) expr).name;
 				return new Expr.Assign(name, value, equals);
+			} else if (expr instanceof Expr.Get) {
+				Expr.Get get = (Expr.Get) expr;
+				return new Expr.Set(get.object, get.name, value);
 			} else if (expr instanceof Expr.ListAccessor) {
 				Token name = ((Expr.ListAccessor) expr).name;
 				return new Expr.ListMutator(expr, name, value);
@@ -86,6 +87,9 @@ public class Parser {
 
 	private Stmt declaration() {
 		try {
+			if (match(TokenType.CLASS)) {
+				return classDeclaration();
+			}
 			if (match(TokenType.FUN)) {
 				return function("function");
 			}
@@ -100,6 +104,19 @@ public class Parser {
 			synchronize();
 			return null;
 		}
+	}
+
+	private Stmt classDeclaration() {
+		Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+		consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
+		List<Stmt.Function> methods = new ArrayList<>();
+		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
+			//if (match(TokenType.FUN)) {
+			methods.add(function("method"));
+			//}
+		}
+		consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
+		return new Stmt.Class(name, methods);
 	}
 
 	private Stmt statement() {
@@ -119,10 +136,10 @@ public class Parser {
 			return new Stmt.Block(block());
 		}
 		if (match(TokenType.BREAK)) {
-			return breakStatement();
+			return breakStatement(previous());
 		}
 		if (match(TokenType.CONTINUE)) {
-			return continueStatement();
+			return continueStatement(previous());
 		}
 		return expressionStatement();
 	}
@@ -154,9 +171,7 @@ public class Parser {
 			increment = expression();
 			consume(TokenType.RIGHT_PAREN, "Expect ')' after for expression.");
 		}
-		loopDepth++;
 		Stmt body = statement();
-		loopDepth--;
 		// init and increment maybe null so check in interpreter
 		// condition can't be null if null means loop for ever by setting condition to true
 		// wrapping it in Block to prevent scope leaks
@@ -166,9 +181,7 @@ public class Parser {
 	private Stmt foreachStatement(Stmt init) {
 		Expr iterable = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after for expression.");
-		loopDepth++;
 		Stmt body = statement();
-		loopDepth--;
 		// wrapping it in Block to prevent scope leaks
 		return new Stmt.Block(List.of(new Stmt.ForEach(init, iterable, body)));
 	}
@@ -228,9 +241,7 @@ public class Parser {
 		consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.");
 		Expr condition = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
-		loopDepth++;
 		Stmt body = statement();
-		loopDepth--;
 		return new Stmt.While(condition, body);
 	}
 
@@ -240,7 +251,7 @@ public class Parser {
 		return new Stmt.Expression(expr);
 	}
 
-	private Stmt function(String kind) {
+	private Stmt.Function function(String kind) {
 		Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
 		consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
 		List<Token> parameters = new ArrayList<>();
@@ -259,20 +270,14 @@ public class Parser {
 		return new Stmt.Function(name, parameters, body);
 	}
 
-	private Stmt breakStatement() {
-		if (loopDepth == 0) {
-			throw error(previous(), "'break' must be used inside a loop");
-		}
+	private Stmt breakStatement(Token breakToken) {
 		consume(TokenType.SEMICOLON, "Expect ';' after break.");
-		return new Stmt.Break(previous());
+		return new Stmt.Break(breakToken);
 	}
 
-	private Stmt continueStatement() {
-		if (loopDepth == 0) {
-			throw error(previous(), "'continue' must be used inside a loop");
-		}
+	private Stmt continueStatement(Token continueToken) {
 		consume(TokenType.SEMICOLON, "Expect ';' after continue.");
-		return new Stmt.Continue(previous());
+		return new Stmt.Continue(continueToken);
 	}
 
 	private List<Stmt> block() {
@@ -370,6 +375,9 @@ public class Parser {
 		while (true) {
 			if (match(TokenType.LEFT_PAREN)) {
 				expr = finishCall(expr);
+			} else if (match(TokenType.DOT)) {
+				Token name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
+				expr = new Expr.Get(expr, name);
 			} else if (match(TokenType.LEFT_SQUARE_BRACKET)) {
 				Expr index = primary();
 				consume(TokenType.RIGHT_SQUARE_BRACKET,
@@ -410,6 +418,9 @@ public class Parser {
 		}
 		if (match(TokenType.NUMBER, TokenType.STRING)) {
 			return new Expr.Literal(previous().getLiteral());
+		}
+		if (match(TokenType.THIS)) {
+			return new Expr.This(previous());
 		}
 		if (match(TokenType.IDENTIFIER)) {
 			return new Expr.Variable(previous());

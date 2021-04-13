@@ -14,10 +14,19 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	private final Interpreter interpreter;
 	private final Stack<Map<String, Boolean>> scopes = new Stack<>();
 	private FunctionType currentFunction = FunctionType.NONE;
+	private ClassType currentClass = ClassType.NONE;
+	private boolean isInLoop;
 
 	private enum FunctionType {
 		NONE,
-		FUNCTION
+		FUNCTION,
+		INITIALIZER,
+		METHOD
+	}
+
+	private enum ClassType {
+		NONE,
+		CLASS
 	}
 
 	public Resolver(Interpreter interpreter) {
@@ -58,6 +67,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitGetExpr(Expr.Get expr) {
+		resolve(expr.object);
+		return null;
+	}
+
+	@Override
 	public Void visitGroupingExpr(Expr.Grouping expr) {
 		resolve(expr.expression);
 		return null;
@@ -72,6 +87,23 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	public Void visitLogicalExpr(Expr.Logical expr) {
 		resolve(expr.left);
 		resolve(expr.right);
+		return null;
+	}
+
+	@Override
+	public Void visitSetExpr(Expr.Set expr) {
+		resolve(expr.value);
+		resolve(expr.object);
+		return null;
+	}
+
+	@Override
+	public Void visitThisExpr(Expr.This expr) {
+		if (currentClass == ClassType.NONE) {
+			Qanun.error(expr.keyword, "Can't use 'this' outside of a class.");
+			return null;
+		}
+		resolveLocal(expr, expr.keyword);
 		return null;
 	}
 
@@ -122,6 +154,26 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitClassStmt(Stmt.Class stmt) {
+		ClassType enclosingClass = currentClass;
+		currentClass = ClassType.CLASS;
+		declare(stmt.name);
+		define(stmt.name);
+		beginScope();
+		scopes.peek().put("this", true);
+		for (Stmt.Function method : stmt.methods) {
+			FunctionType declaration = FunctionType.METHOD;
+			if (method.name.getLexeme().equals("init")) {
+				declaration = FunctionType.INITIALIZER;
+			}
+			resolveFunction(method, declaration);
+		}
+		endScope();
+		currentClass = enclosingClass;
+		return null;
+	}
+
+	@Override
 	public Void visitExpressionStmt(Stmt.Expression stmt) {
 		resolve(stmt.expression);
 		return null;
@@ -130,6 +182,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	@Override
 	public Void visitFunctionStmt(Stmt.Function stmt) {
 		declare(stmt.name);
+		/*
+		We define the name eagerly, before resolving the function’s body.
+		This lets a function recursively refer to itself inside its own body.
+		 */
 		define(stmt.name);
 		resolveFunction(stmt, FunctionType.FUNCTION);
 		return null;
@@ -151,6 +207,9 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 			Qanun.error(stmt.keyword, "Can't return from top-level code.");
 		}
 		if (stmt.value != null) {
+			if (currentFunction == FunctionType.INITIALIZER) {
+				Qanun.error(stmt.keyword, "Can't return a value from an initializer.");
+			}
 			resolve(stmt.value);
 		}
 
@@ -177,13 +236,16 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitWhileStmt(Stmt.While stmt) {
+		isInLoop = true;
 		resolve(stmt.condition);
 		resolve(stmt.body);
+		isInLoop = false;
 		return null;
 	}
 
 	@Override
 	public Void visitForStmt(Stmt.For stmt) {
+		isInLoop = true;
 		if (stmt.init != null) {
 			resolve(stmt.init);
 		}
@@ -194,24 +256,33 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		if (stmt.increment != null) {
 			resolve(stmt.increment);
 		}
+		isInLoop = false;
 		return null;
 	}
 
 	@Override
 	public Void visitForEachStmt(Stmt.ForEach stmt) {
+		isInLoop = true;
 		resolve(stmt.init);
 		resolve(stmt.iterable);
 		resolve(stmt.body);
+		isInLoop = false;
 		return null;
 	}
 
 	@Override
 	public Void visitBreakStmt(Stmt.Break stmt) {
+		if (!isInLoop) {
+			Qanun.error(stmt.name, "break statement is not allowed outside a loop");
+		}
 		return null;
 	}
 
 	@Override
 	public Void visitContinueStmt(Stmt.Continue stmt) {
+		if (!isInLoop) {
+			Qanun.error(stmt.name, "continue statement is not allowed outside a loop");
+		}
 		return null;
 	}
 
@@ -245,7 +316,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		Map<String, Boolean> scope = this.scopes.peek();
 		if (scope.containsKey(name.getLexeme())) {
 			Qanun.error(name,
-					"Already variable/constant with this name in this scope.");
+					"Already variable/constant with the same name is in this scope.");
 		}
 		scope.put(name.getLexeme(), false);
 	}
@@ -258,7 +329,8 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	}
 
 	private void resolveLocal(Expr expr, Token name) {
-		for (int i = scopes.size() - 1; i >= 0; i--) {
+		int size = scopes.size() - 1;
+		for (int i = size; i >= 0; i--) {
 			if (scopes.get(i).containsKey(name.getLexeme())) {
 				interpreter.resolve(expr, scopes.size() - 1 - i);
 				return;

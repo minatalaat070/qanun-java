@@ -27,6 +27,9 @@ public class GenerateAst {
 				"Assign   : Token name, Expr value, Token equalSign",
 				"Binary   : Expr left, Token operator, Expr right",
 				"Call     : Expr callee, Token paren, List<Expr> arguments",
+				"Get      : Expr object, Token name",
+				"Set      : Expr object, Token name, Expr value",
+				"This     : Token keyword",
 				"Grouping : Expr expression",
 				"ListAccessor: Expr object, Token name, Expr index  ",
 				"ListMutator : Expr object, Token name, Expr value",
@@ -42,6 +45,7 @@ public class GenerateAst {
 				"Expression : Expr expression", //expression statment
 				"Function   : Token name, List<Token> params,"
 				+ " List<Stmt> body",
+				"Class    : Token name, List<Stmt.Function> methods",
 				"If         : Expr condition, Stmt thenBranch,"
 				+ " Stmt elseBranch",
 				"Return     : Token keyword, Expr value",
@@ -57,7 +61,7 @@ public class GenerateAst {
 
 	private static void defineAst(String outputDir, String baseName, List<String> exprTypes) throws FileNotFoundException, UnsupportedEncodingException {
 		String path = outputDir + "/" + baseName + ".java";
-		try (PrintWriter writer = new PrintWriter(path, "UTF-8")) {
+		try ( PrintWriter writer = new PrintWriter(path, "UTF-8")) {
 			writer.println("package com.mina.qanun;");
 			writer.println();
 			writer.println("import java.util.List;");
