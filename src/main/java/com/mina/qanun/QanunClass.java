@@ -15,16 +15,21 @@ import java.util.Map;
 public class QanunClass implements QanunCallable {
 
 	final String name;
+	final QanunClass superClass;
 	private final Map<String, QanunFunction> mathods;
 
-	public QanunClass(String name, Map<String, QanunFunction> methods) {
+	public QanunClass(String name, QanunClass superClass, Map<String, QanunFunction> methods) {
 		this.name = name;
+		this.superClass = superClass;
 		this.mathods = methods;
 	}
 
 	QanunFunction findMethod(String name) {
 		if (this.mathods.containsKey(name)) {
 			return this.mathods.get(name);
+		}
+		if (this.superClass != null) {
+			return this.superClass.findMethod(name);
 		}
 		return null;
 	}

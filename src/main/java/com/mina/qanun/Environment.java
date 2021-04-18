@@ -94,6 +94,10 @@ public class Environment {
 		constantValues.put(name.getLexeme(), value);
 	}
 
+	public Environment getEnclosing() {
+		return enclosing;
+	}
+
 	private void checkIfAlreadyDefined(Token name) {
 		if (constantValues.containsKey(name.getLexeme())) {
 			throw new RuntimeError(name, "Error : redeclaration of [ val " + name.getLexeme() + " ]");

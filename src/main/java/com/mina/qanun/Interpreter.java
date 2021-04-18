@@ -247,6 +247,20 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Object visitSuperExpr(Expr.Super expr) {
+		int distance = locals.get(expr);
+		Token fakeSuperToken = new Token(TokenType.SUPER, "super", null, -1);
+		QanunClass superClass = (QanunClass) this.environment.getAt(distance, fakeSuperToken);
+		Token fakeThisToken = new Token(TokenType.THIS, "this", null, -1);
+		QanunInstance qanunInstance = (QanunInstance) this.environment.getAt(distance - 1, fakeThisToken);
+		QanunFunction method = superClass.findMethod(expr.method.getLexeme());
+		if (method == null) {
+			throw new RuntimeError(expr.method, "Undefined property '" + expr.method.getLexeme() + "'.");
+		}
+		return method.bind(qanunInstance);
+	}
+
+	@Override
 	public Object visitThisExpr(Expr.This expr) {
 		return lookUpVariable(expr.keyword, expr);
 	}
@@ -333,14 +347,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitClassStmt(Stmt.Class stmt) {
-		environment.define(stmt.name, null);
+		Object superClass = null;
+		if (stmt.superClass != null) {
+			superClass = evaluate(stmt.superClass);
+			if (!(superClass instanceof QanunClass)) {
+				throw new RuntimeError(stmt.superClass.name, "Superclass must be a class.");
+			}
+		}
+		this.environment.define(stmt.name, null);
+		if (stmt.superClass != null) {
+			this.environment = new Environment(environment);
+			Token fakeSuperToken = new Token(TokenType.SUPER, "super", null, -1);
+			this.environment.define(fakeSuperToken, superClass);
+		}
 		Map<String, QanunFunction> methods = new HashMap<>();
 		for (Stmt.Function method : stmt.methods) {
 			QanunFunction qanunFunction = new QanunFunction(method, this.environment,
 					"init".equals(method.name.getLexeme()));
 			methods.put(method.name.getLexeme(), qanunFunction);
 		}
-		QanunClass qanunClass = new QanunClass(stmt.name.getLexeme(), methods);
+		QanunClass qanunClass = new QanunClass(stmt.name.getLexeme(), (QanunClass) superClass, methods);
+		if (superClass != null) {
+			this.environment = this.environment.getEnclosing();
+		}
 		environment.assign(stmt.name, qanunClass);
 		return null;
 	}

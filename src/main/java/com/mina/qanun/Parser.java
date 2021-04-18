@@ -48,8 +48,15 @@ public class Parser {
 		}
 	}
 
+	// class Cat "[" : Animal "]" { }
+	// "[" optional "]"
 	private Stmt classDeclaration() {
 		Token name = consume(TokenType.IDENTIFIER, "Expect class name.");
+		Expr.Variable superClass = null;
+		if (match(TokenType.COLON)) {
+			consume(TokenType.IDENTIFIER, "Expect superclass name.");
+			superClass = new Expr.Variable(previous());
+		}
 		consume(TokenType.LEFT_BRACE, "Expect '{' before class body.");
 		List<Stmt.Function> methods = new ArrayList<>();
 		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
@@ -60,7 +67,7 @@ public class Parser {
 			}
 		}
 		consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
-		return new Stmt.Class(name, methods);
+		return new Stmt.Class(name, superClass, methods);
 	}
 
 	private Stmt.Function function(String kind) {
@@ -423,6 +430,12 @@ public class Parser {
 		}
 		if (match(TokenType.THIS)) {
 			return new Expr.This(previous());
+		}
+		if (match(TokenType.SUPER)) {
+			Token keyword = previous();
+			consume(TokenType.DOT, "Expect '.' after 'super'.");
+			Token method = consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+			return new Expr.Super(keyword, method);
 		}
 		if (match(TokenType.IDENTIFIER)) {
 			return new Expr.Variable(previous());
