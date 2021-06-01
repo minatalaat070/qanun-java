@@ -256,7 +256,7 @@ public class StandardLibrary {
 			public Object call(Interpreter interpreter, List<Object> args) {
 				try {
 					try ( // File path is 1st argument
-							BufferedWriter bw = new BufferedWriter(new FileWriter(interpreter.stringify(args.get(0))))) {
+							 BufferedWriter bw = new BufferedWriter(new FileWriter(interpreter.stringify(args.get(0))))) {
 						// Data is 2nd argument
 						bw.write(interpreter.stringify(args.get(1)));
 					}
@@ -285,7 +285,7 @@ public class StandardLibrary {
 			public Object call(Interpreter interpreter, List<Object> args) {
 				try {
 					try ( // File path is 1st argument
-							BufferedWriter bw = new BufferedWriter(new FileWriter(interpreter.stringify(args.get(0)), true))) {
+							 BufferedWriter bw = new BufferedWriter(new FileWriter(interpreter.stringify(args.get(0)), true))) {
 						// Data is 2nd argument
 						bw.append(interpreter.stringify(args.get(1)));
 					}
