@@ -273,8 +273,10 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	@Override
 	public Void visitSwitchStmt(Stmt.Switch stmt) {
 		isInLoop = true;
-		for (Stmt item : stmt.actions) {
-			resolve(item);
+		for (List<Stmt> listOfStmts : stmt.actions) {
+			for (Stmt item : listOfStmts) {
+				resolve(item);
+			}
 		}
 		isInLoop = false;
 		return null;

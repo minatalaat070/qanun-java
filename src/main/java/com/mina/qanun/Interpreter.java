@@ -511,7 +511,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		if (index != -1) {
 			try {
 				for (int i = index; i < stmt.actions.size(); i++) {
-					execute(stmt.actions.get(i));
+					for (int j = 0; j < stmt.actions.get(i).size(); j++) {
+						execute(stmt.actions.get(i).get(j));
+					}
 				}
 			} catch (BreakJump breakJump) {
 				return null;

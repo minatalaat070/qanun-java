@@ -229,7 +229,7 @@ public class Parser {
 		Expr expr = expression();
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
 		consume(TokenType.LEFT_BRACE, "Expect '{' at start of switch statement.");
-		List<Stmt> actions = new ArrayList();
+		List<List<Stmt>> actions = new ArrayList();
 		List<Object> values = new ArrayList();
 		while (!match(TokenType.RIGHT_BRACE)) {
 			if (isAtEnd()) {
@@ -243,20 +243,21 @@ public class Parser {
 					error(peek(), "Case expressions must be unique.");
 				}
 				consume(TokenType.COLON, "Expect ':' after case.");
-				Stmt action = null;
-				if (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE)) {
-					action = statement();
+				List<Stmt> action = new ArrayList();
+				while (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE)) {
+					action.add(statement());
 				}
 				values.add(value);
+
 				actions.add(action);
 			} else if (match(TokenType.DEFAULT)) {
 				if (values.indexOf("default") != -1) {
 					error(peek(), "Duplicate default stmt.");
 				}
 				consume(TokenType.COLON, "Expect ':' after case.");
-				Stmt action = null;
-				if (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE)) {
-					action = statement();
+				List<Stmt> action = new ArrayList();
+				while (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE)) {
+					action.add(statement());
 				}
 				values.add("default");
 				actions.add(action);
