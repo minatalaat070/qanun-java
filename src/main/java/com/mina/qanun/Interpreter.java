@@ -502,6 +502,25 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitSwitchStmt(Stmt.Switch stmt) {
+		Object expr = evaluate(stmt.expression);
+		int index = stmt.values.indexOf(expr);
+		if (index == -1) {
+			index = stmt.values.indexOf("default");
+		}
+		if (index != -1) {
+			try {
+				for (int i = index; i < stmt.actions.size(); i++) {
+					execute(stmt.actions.get(i));
+				}
+			} catch (BreakJump breakJump) {
+				return null;
+			}
+		}
+		return null;
+	}
+
+	@Override
 	public Object visitAssignExpr(Expr.Assign expr) {
 		Object value = evaluate(expr.value);
 

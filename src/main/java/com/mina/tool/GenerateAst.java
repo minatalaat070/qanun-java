@@ -56,13 +56,14 @@ public class GenerateAst {
 				"For        : Stmt init, Expr condition, Expr increment, Stmt body",
 				"ForEach    : Stmt init, Expr iterable, Stmt body",
 				"Break      : Token name",
-				"Continue   : Token name"
+				"Continue   : Token name",
+				"Switch   : Expr expression, List<Object> values, List<Stmt> actions"
 		));
 	}
 
 	private static void defineAst(String outputDir, String baseName, List<String> exprTypes) throws FileNotFoundException, UnsupportedEncodingException {
 		String path = outputDir + "/" + baseName + ".java";
-		try ( PrintWriter writer = new PrintWriter(path, "UTF-8")) {
+		try (PrintWriter writer = new PrintWriter(path, "UTF-8")) {
 			writer.println("package com.mina.qanun;");
 			writer.println();
 			writer.println("import java.util.List;");

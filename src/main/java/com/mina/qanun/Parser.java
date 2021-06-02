@@ -124,6 +124,9 @@ public class Parser {
 		if (match(TokenType.WHILE)) {
 			return whileStatement();
 		}
+		if (match(TokenType.SWITCH)) {
+			return switchStatement();
+		}
 		if (match(TokenType.LEFT_BRACE)) {
 			return new Stmt.Block(block());
 		}
@@ -219,6 +222,50 @@ public class Parser {
 		consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.");
 		Stmt body = statement();
 		return new Stmt.While(condition, body);
+	}
+
+	private Stmt switchStatement() {
+		consume(TokenType.LEFT_PAREN, "Expect '(' after 'switch'.");
+		Expr expr = expression();
+		consume(TokenType.RIGHT_PAREN, "Expect ')' after expression.");
+		consume(TokenType.LEFT_BRACE, "Expect '{' at start of switch statement.");
+		List<Stmt> actions = new ArrayList();
+		List<Object> values = new ArrayList();
+		while (!match(TokenType.RIGHT_BRACE)) {
+			if (isAtEnd()) {
+				Qanun.error(peek(), "Unexpected End of File.");
+			} else if (match(TokenType.CASE)) {
+				if (!match(TokenType.STRING, TokenType.NUMBER, TokenType.TRUE, TokenType.FALSE, TokenType.NIL)) {
+					error(peek(), "Case expressions must be constants.");
+				}
+				Object value = previous().getLiteral();
+				if (values.indexOf(value) != -1) {
+					error(peek(), "Case expressions must be unique.");
+				}
+				consume(TokenType.COLON, "Expect ':' after case.");
+				Stmt action = null;
+				if (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE)) {
+					action = statement();
+				}
+				values.add(value);
+				actions.add(action);
+			} else if (match(TokenType.DEFAULT)) {
+				if (values.indexOf("default") != -1) {
+					error(peek(), "Duplicate default stmt.");
+				}
+				consume(TokenType.COLON, "Expect ':' after case.");
+				Stmt action = null;
+				if (!check(TokenType.CASE) && !check(TokenType.DEFAULT) && !check(TokenType.RIGHT_BRACE)) {
+					action = statement();
+				}
+				values.add("default");
+				actions.add(action);
+			} else {
+				error(peek(), "Unexpected token in middle of switch block.");
+				break;
+			}
+		}
+		return new Stmt.Switch(expr, values, actions);
 	}
 
 	private Stmt breakStatement(Token breakToken) {

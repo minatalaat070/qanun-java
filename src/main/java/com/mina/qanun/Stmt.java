@@ -31,6 +31,8 @@ abstract class Stmt {
 		R visitBreakStmt(Break stmt);
 
 		R visitContinueStmt(Continue stmt);
+
+		R visitSwitchStmt(Switch stmt);
 	}
 
 	static class Block extends Stmt {
@@ -243,6 +245,24 @@ abstract class Stmt {
 		}
 
 		final Token name;
+	}
+
+	static class Switch extends Stmt {
+
+		Switch(Expr expression, List<Object> values, List<Stmt> actions) {
+			this.expression = expression;
+			this.values = values;
+			this.actions = actions;
+		}
+
+		@Override
+		<R> R accept(Visitor<R> visitor) {
+			return visitor.visitSwitchStmt(this);
+		}
+
+		final Expr expression;
+		final List<Object> values;
+		final List<Stmt> actions;
 	}
 
 	abstract <R> R accept(Visitor<R> visitor);
