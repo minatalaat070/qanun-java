@@ -249,7 +249,7 @@ abstract class Stmt {
 
 	static class Switch extends Stmt {
 
-		Switch(Expr expression, List<Object> values, List< List<Stmt>> actions) {
+		Switch(Expr expression, List<Object> values, List<List<Stmt>> actions) {
 			this.expression = expression;
 			this.values = values;
 			this.actions = actions;
@@ -262,7 +262,7 @@ abstract class Stmt {
 
 		final Expr expression;
 		final List<Object> values;
-		final List< List<Stmt>> actions;
+		final List<List<Stmt>> actions;
 	}
 
 	abstract <R> R accept(Visitor<R> visitor);

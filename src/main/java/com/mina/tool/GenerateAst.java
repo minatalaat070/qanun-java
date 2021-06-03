@@ -57,7 +57,7 @@ public class GenerateAst {
 				"ForEach    : Stmt init, Expr iterable, Stmt body",
 				"Break      : Token name",
 				"Continue   : Token name",
-				"Switch   : Expr expression, List<Object> values, List< List<Stmt>> actions" // something goes wrong with the generation script when parsing List<List<Stmt>> fix it manually every time you run script
+				"Switch   : Expr expression, List<Object> values, List<List<Stmt>> actions" // DO NOT leave spaces in string unless is needed
 		));
 	}
 

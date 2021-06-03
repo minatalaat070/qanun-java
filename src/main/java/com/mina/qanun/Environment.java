@@ -100,10 +100,10 @@ public class Environment {
 
 	private void checkIfAlreadyDefined(Token name) {
 		if (constantValues.containsKey(name.getLexeme())) {
-			throw new RuntimeError(name, "Error : redeclaration of [ val " + name.getLexeme() + " ]");
+			throw new RuntimeError(name, "Error : redeclaration of [ " + name.getLexeme() + " ]");
 		}
 		if (variblesValues.containsKey(name.getLexeme())) {
-			throw new RuntimeError(name, "Error : redeclaration of [ var " + name.getLexeme() + " ]");
+			throw new RuntimeError(name, "Error : redeclaration of [ " + name.getLexeme() + " ]");
 		}
 	}
 }
