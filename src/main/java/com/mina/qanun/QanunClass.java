@@ -12,24 +12,25 @@ import java.util.Map;
  *
  * @author mina
  */
-public class QanunClass implements QanunCallable {
+public class QanunClass extends QanunInstance implements QanunCallable {
 
 	final String name;
 	final QanunClass superClass;
-	private final Map<String, QanunFunction> mathods;
+	private final Map<String, QanunFunction> methods;
 
-	public QanunClass(String name, QanunClass superClass, Map<String, QanunFunction> methods) {
+	public QanunClass(QanunClass metaClass, String name, QanunClass superClass, Map<String, QanunFunction> methods) {
+		super(metaClass);
 		this.name = name;
 		this.superClass = superClass;
-		this.mathods = methods;
+		this.methods = methods;
 	}
 
-	QanunFunction findMethod(String name) {
-		if (this.mathods.containsKey(name)) {
-			return this.mathods.get(name);
+	QanunFunction findMethod(QanunInstance qanunInstance, String name) {
+		if (this.methods.containsKey(name)) {
+			return this.methods.get(name).bind(qanunInstance);
 		}
 		if (this.superClass != null) {
-			return this.superClass.findMethod(name);
+			return this.superClass.findMethod(qanunInstance, name);
 		}
 		return null;
 	}
@@ -37,7 +38,7 @@ public class QanunClass implements QanunCallable {
 	@Override
 	public Object call(Interpreter interpreter, List<Object> arguments) {
 		QanunInstance qanunInstance = new QanunInstance(this);
-		QanunFunction initializer = findMethod("init");
+		QanunFunction initializer = methods.get("init");
 		if (initializer != null) {
 			initializer.bind(qanunInstance).call(interpreter, arguments);
 		}
@@ -46,7 +47,7 @@ public class QanunClass implements QanunCallable {
 
 	@Override
 	public int arity() {
-		QanunFunction initializer = findMethod("init");
+		QanunFunction initializer = methods.get("init");
 		if (initializer == null) {
 			return 0;
 		}

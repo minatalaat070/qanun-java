@@ -46,7 +46,7 @@ public class GenerateAst {
 				"Expression : Expr expression", //expression statment	
 				"Function   : Token name, List<Token> params,"
 				+ " List<Stmt> body",
-				"Class    : Token name, Expr.Variable superClass, List<Stmt.Function> methods",
+				"Class    : Token name, Expr.Variable superClass, List<Stmt.Function> methods, List<Stmt.Function> staticMethods",
 				"If         : Expr condition, Stmt thenBranch,"
 				+ " Stmt elseBranch",
 				"Return     : Token keyword, Expr value",

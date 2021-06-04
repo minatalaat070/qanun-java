@@ -26,7 +26,7 @@ class QanunInstance {
 			return fields.get(name.getLexeme());
 		}
 
-		QanunFunction method = qanunClass.findMethod(name.getLexeme());
+		QanunFunction method = qanunClass.findMethod(this, name.getLexeme());
 		if (method != null) {
 			return method.bind(this);
 		}

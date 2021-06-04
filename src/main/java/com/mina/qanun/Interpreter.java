@@ -253,7 +253,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		QanunClass superClass = (QanunClass) this.environment.getAt(distance, fakeSuperToken);
 		Token fakeThisToken = new Token(TokenType.THIS, "this", null, -1);
 		QanunInstance qanunInstance = (QanunInstance) this.environment.getAt(distance - 1, fakeThisToken);
-		QanunFunction method = superClass.findMethod(expr.method.getLexeme());
+		QanunFunction method = superClass.findMethod(qanunInstance, expr.method.getLexeme());
 		if (method == null) {
 			throw new RuntimeError(expr.method, "Undefined property '" + expr.method.getLexeme() + "'.");
 		}
@@ -360,13 +360,21 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			Token fakeSuperToken = new Token(TokenType.SUPER, "super", null, -1);
 			this.environment.define(fakeSuperToken, superClass);
 		}
+
+		Map<String, QanunFunction> staticMethods = new HashMap<>();
+		for (Stmt.Function method : stmt.staticMethods) {
+			QanunFunction qanunFunction = new QanunFunction(method, this.environment, false);
+			staticMethods.put(method.name.getLexeme(), qanunFunction);
+		}
+		QanunClass metaClass = new QanunClass(null, stmt.name.getLexeme() + " metaclass", (QanunClass) superClass, staticMethods);
+
 		Map<String, QanunFunction> methods = new HashMap<>();
 		for (Stmt.Function method : stmt.methods) {
 			QanunFunction qanunFunction = new QanunFunction(method, this.environment,
 					"init".equals(method.name.getLexeme()));
 			methods.put(method.name.getLexeme(), qanunFunction);
 		}
-		QanunClass qanunClass = new QanunClass(stmt.name.getLexeme(), (QanunClass) superClass, methods);
+		QanunClass qanunClass = new QanunClass(metaClass, stmt.name.getLexeme(), (QanunClass) superClass, methods);
 		if (superClass != null) {
 			this.environment = this.environment.getEnclosing();
 		}

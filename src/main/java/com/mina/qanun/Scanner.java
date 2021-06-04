@@ -40,7 +40,9 @@ public class Scanner {
 		keywords.put("default", TokenType.DEFAULT);
 		keywords.put("val", TokenType.VAL);
 		keywords.put("break", TokenType.BREAK);
-		keywords.put("continue", TokenType.CONTINUE);
+		keywords.put("continue", TokenType.CONTINUE);	
+		keywords.put("static", TokenType.STATIC);
+
 
 	}
 
