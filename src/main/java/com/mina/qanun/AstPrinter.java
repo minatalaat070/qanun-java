@@ -120,4 +120,18 @@ public class AstPrinter implements Expr.Visitor<String> {
 		return expr.keyword + "." + expr.method;
 	}
 
+	@Override
+	public String visitLambdaExpr(Expr.Lambda expr) {
+		String result = "(";
+		for (Token token : expr.params) {
+			result = result + token.getLexeme() + " ";
+		}
+		result += ") => {";
+		for (Stmt stmt : expr.body) {
+			result = result + stmt + " ";
+		}
+		result += "}";
+		return result;
+	}
+
 }

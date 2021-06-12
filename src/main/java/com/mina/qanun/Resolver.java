@@ -140,6 +140,12 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	}
 
 	@Override
+	public Void visitLambdaExpr(Expr.Lambda expr) {
+		resolveFunction(expr, FunctionType.FUNCTION);
+		return null;
+	}
+
+	@Override
 	public Void visitVariableExpr(Expr.Variable expr) {
 		if (!this.scopes.isEmpty() && scopes.peek().get(expr.name.getLexeme()) == Boolean.FALSE) {
 			Qanun.error(expr.name, "Can't read local variable in its own initializer.");
@@ -188,7 +194,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		for (Stmt.Function method : stmt.staticMethods) {
 			beginScope();
 			scopes.peek().put("this", true);
-			resolveFunction(method, FunctionType.METHOD);
+			resolveFunction(method.lambda, FunctionType.METHOD);
 			endScope();
 		}
 		for (Stmt.Function method : stmt.methods) {
@@ -196,7 +202,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 			if (method.name.getLexeme().equals("init")) {
 				declaration = FunctionType.INITIALIZER;
 			}
-			resolveFunction(method, declaration);
+			resolveFunction(method.lambda, declaration);
 		}
 		endScope();
 		if (stmt.superClass != null) {
@@ -220,7 +226,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		This lets a function recursively refer to itself inside its own body.
 		 */
 		define(stmt.name);
-		resolveFunction(stmt, FunctionType.FUNCTION);
+		resolveFunction(stmt.lambda, FunctionType.FUNCTION);
 		return null;
 	}
 
@@ -383,7 +389,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		}
 	}
 
-	private void resolveFunction(Stmt.Function function, FunctionType type) {
+	private void resolveFunction(Expr.Lambda function, FunctionType type) {
 		FunctionType enclosingFunction = currentFunction;
 		currentFunction = type;
 		beginScope();

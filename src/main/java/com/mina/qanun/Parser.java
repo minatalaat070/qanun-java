@@ -32,7 +32,8 @@ public class Parser {
 			if (match(TokenType.CLASS)) {
 				return classDeclaration();
 			}
-			if (match(TokenType.FUN)) {
+			if (check(TokenType.FUN) && checkNext(TokenType.IDENTIFIER)) {
+				consume(TokenType.FUN, null);
 				return function("function");
 			}
 			if (match(TokenType.VAR)) {
@@ -61,36 +62,43 @@ public class Parser {
 		List<Stmt.Function> methods = new ArrayList<>();
 		List<Stmt.Function> staticMethods = new ArrayList<>();
 		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
-			if(match(TokenType.STATIC)){
+			if (match(TokenType.STATIC)) {
 				consume(TokenType.FUN, "Expect 'fun' keword after 'static'.");
 				staticMethods.add(function("method"));
-			}else if (match(TokenType.FUN)) {
+			} else if (match(TokenType.FUN)) {
 				methods.add(function("method"));
 			} else {
 				throw error(peek(), "Expect 'fun' or 'static fun' before '" + peek().getLexeme() + "' method declaration");
 			}
 		}
 		consume(TokenType.RIGHT_BRACE, "Expect '}' after class body.");
-		return new Stmt.Class(name, superClass, methods,staticMethods);
+		return new Stmt.Class(name, superClass, methods, staticMethods);
 	}
 
 	private Stmt.Function function(String kind) {
 		Token name = consume(TokenType.IDENTIFIER, "Expect " + kind + " name.");
-		consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + " name.");
-		List<Token> parameters = new ArrayList<>();
-		if (!check(TokenType.RIGHT_PAREN)) {
-			do {
-				if (parameters.size() >= 255) {
-					error(peek(), "Can't have more than 255 parameters.");
-				}
+		return new Stmt.Function(name, functionBody(kind));
+	}
 
-				parameters.add(consume(TokenType.IDENTIFIER, "Expect parameter name."));
-			} while (match(TokenType.COMMA));
+	private Expr.Lambda functionBody(String kind) {
+		List<Token> paramaters = null;
+		if (!kind.equals("method") || check(TokenType.LEFT_PAREN)) {
+			consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + "name.");
+			paramaters = new ArrayList<>();
+			if (!check(TokenType.RIGHT_PAREN)) {
+				do {
+					if (paramaters.size() >= 255) {
+						error(peek(), "Cannot have more that 255 paramaters.");
+					}
+
+					paramaters.add(consume(TokenType.IDENTIFIER, "Expected paramater name."));
+				} while (match(TokenType.COMMA));
+			}
+			consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.");
 		}
-		consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
-		consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
+		consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
 		List<Stmt> body = block();
-		return new Stmt.Function(name, parameters, body);
+		return new Expr.Lambda(paramaters, body);
 	}
 
 	private Stmt varDeclaration() {
@@ -476,6 +484,9 @@ public class Parser {
 		}
 		if (match(TokenType.NIL)) {
 			return new Expr.Literal(null);
+		}
+		if (match(TokenType.FUN)) {
+			return functionBody("function");
 		}
 		if (match(TokenType.NUMBER, TokenType.STRING)) {
 			return new Expr.Literal(previous().getLiteral());

@@ -170,35 +170,41 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Object visitListMutatorExpr(Expr.ListMutator expr) {
+		// TODO: Fix possible null pointer exception
 		Expr.ListAccessor accessor = null;
 		if (expr.object instanceof Expr.ListAccessor) {
 			accessor = (Expr.ListAccessor) expr.object;
 		}
-		Object listObject = evaluate(accessor.object);
-		if (!(listObject instanceof List)) {
-			throw new RuntimeError(expr.name,
-					"Not List to mutate by list accessor.");
-		}
-		List list = (List) listObject;
+		if (accessor != null) {
+			Object listObject = evaluate(accessor.object);
+			if (!(listObject instanceof List)) {
+				throw new RuntimeError(expr.name,
+						"Not List to mutate by list accessor.");
+			}
+			List list = (List) listObject;
 
-		Object indexObject = evaluate(accessor.index);
-		if (!(indexObject instanceof Double)) {
+			Object indexObject = evaluate(accessor.index);
+			if (!(indexObject instanceof Double)) {
+				throw new RuntimeError(expr.name,
+						"Only numbers can be used as a list index.");
+			}
+			int indexInt = ((Double) indexObject).intValue();
+			double diff = (Double) indexObject - indexInt;
+			if (diff != 0) {
+				throw new RuntimeError(expr.name,
+						"Indecies can only be integer values, not double");
+			}
+			if (indexInt >= list.size() || indexInt < 0) {
+				throw new RuntimeError(expr.name,
+						"List index out of range.");
+			}
+			Object value = evaluate(expr.value);
+			list.set(indexInt, value);
+			return value;
+		} else {
 			throw new RuntimeError(expr.name,
-					"Only numbers can be used as a list index.");
+					"accessor is Null.");
 		}
-		int indexInt = ((Double) indexObject).intValue();
-		double diff = (Double) indexObject - indexInt;
-		if (diff != 0) {
-			throw new RuntimeError(expr.name,
-					"Indecies can only be integer values, not double");
-		}
-		if (indexInt >= list.size() || indexInt < 0) {
-			throw new RuntimeError(expr.name,
-					"List index out of range.");
-		}
-		Object value = evaluate(expr.value);
-		list.set(indexInt, value);
-		return value;
 	}
 
 	@Override
@@ -273,7 +279,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 				return !isTruthy(right);
 			case MINUS:
 				checkNumberOperand(expr.operator, right);
-				return -(double) right;
+				double r = (double) right;
+				if (r == 0) {
+					return 0.0;
+				}
+				return -r;
 			case PLUS_PLUS: {
 				if (!(expr.right instanceof Expr.Variable)) {
 					throw new RuntimeError(expr.operator,
@@ -311,6 +321,11 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		}
 
 		return null;
+	}
+
+	@Override
+	public Object visitLambdaExpr(Expr.Lambda expr) {
+		return new QanunFunction(null, expr, this.environment, false);
 	}
 
 	private Object evaluate(Expr expression) {
@@ -363,14 +378,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 		Map<String, QanunFunction> staticMethods = new HashMap<>();
 		for (Stmt.Function method : stmt.staticMethods) {
-			QanunFunction qanunFunction = new QanunFunction(method, this.environment, false);
+			QanunFunction qanunFunction = new QanunFunction(method.name.getLexeme(),
+					method.lambda, this.environment, false);
 			staticMethods.put(method.name.getLexeme(), qanunFunction);
 		}
 		QanunClass metaClass = new QanunClass(null, stmt.name.getLexeme() + " metaclass", (QanunClass) superClass, staticMethods);
 
 		Map<String, QanunFunction> methods = new HashMap<>();
 		for (Stmt.Function method : stmt.methods) {
-			QanunFunction qanunFunction = new QanunFunction(method, this.environment,
+			QanunFunction qanunFunction = new QanunFunction(method.name.getLexeme(),
+					method.lambda, this.environment,
 					"init".equals(method.name.getLexeme()));
 			methods.put(method.name.getLexeme(), qanunFunction);
 		}
@@ -401,7 +418,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitFunctionStmt(Stmt.Function stmt) {
-		QanunFunction function = new QanunFunction(stmt, this.environment, false);
+		QanunFunction function = new QanunFunction(stmt.name.getLexeme(), stmt.lambda, this.environment, false);
 		environment.define(stmt.name, function);
 		return null;
 	}

@@ -37,6 +37,7 @@ public class GenerateAst {
 				"Literal  : Object value",
 				"QanunList: List<Expr> list",
 				"Logical  : Expr left, Token operator, Expr right",
+				"Lambda : List<Token> params, List<Stmt> body",
 				"Unary    : Token operator, Expr right, boolean isPostFix",
 				"Variable : Token name",
 				"ConditionalTernary: Expr condition, Expr trueCondition, Expr falseCondition"
@@ -44,8 +45,7 @@ public class GenerateAst {
 		defineAst(outputDir, "Stmt", Arrays.asList(
 				"Block      : List<Stmt> statements",
 				"Expression : Expr expression", //expression statment	
-				"Function   : Token name, List<Token> params,"
-				+ " List<Stmt> body",
+				"Function   : Token name, Expr.Lambda lambda",
 				"Class    : Token name, Expr.Variable superClass, List<Stmt.Function> methods, List<Stmt.Function> staticMethods",
 				"If         : Expr condition, Stmt thenBranch,"
 				+ " Stmt elseBranch",
