@@ -121,16 +121,15 @@ public class AstPrinter implements Expr.Visitor<String> {
 	}
 
 	@Override
-	public String visitLambdaExpr(Expr.Lambda expr) {
+	public String visitAnonymousFunExpr(Expr.AnonymousFun expr) {
 		String result = "(";
 		for (Token token : expr.params) {
 			result = result + token.getLexeme() + " ";
 		}
-		result += ") => {";
+		result += ") -> ";
 		for (Stmt stmt : expr.body) {
 			result = result + stmt + " ";
 		}
-		result += "}";
 		return result;
 	}
 

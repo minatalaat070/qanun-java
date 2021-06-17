@@ -324,7 +324,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	}
 
 	@Override
-	public Object visitLambdaExpr(Expr.Lambda expr) {
+	public Object visitAnonymousFunExpr(Expr.AnonymousFun expr) {
 		return new QanunFunction(null, expr, this.environment, false);
 	}
 
@@ -379,7 +379,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		Map<String, QanunFunction> staticMethods = new HashMap<>();
 		for (Stmt.Function method : stmt.staticMethods) {
 			QanunFunction qanunFunction = new QanunFunction(method.name.getLexeme(),
-					method.lambda, this.environment, false);
+					method.anonFun, this.environment, false);
 			staticMethods.put(method.name.getLexeme(), qanunFunction);
 		}
 		QanunClass metaClass = new QanunClass(null, stmt.name.getLexeme() + " metaclass", (QanunClass) superClass, staticMethods);
@@ -387,7 +387,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		Map<String, QanunFunction> methods = new HashMap<>();
 		for (Stmt.Function method : stmt.methods) {
 			QanunFunction qanunFunction = new QanunFunction(method.name.getLexeme(),
-					method.lambda, this.environment,
+					method.anonFun, this.environment,
 					"init".equals(method.name.getLexeme()));
 			methods.put(method.name.getLexeme(), qanunFunction);
 		}
@@ -418,7 +418,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitFunctionStmt(Stmt.Function stmt) {
-		QanunFunction function = new QanunFunction(stmt.name.getLexeme(), stmt.lambda, this.environment, false);
+		QanunFunction function = new QanunFunction(stmt.name.getLexeme(), stmt.anonFun, this.environment, false);
 		environment.define(stmt.name, function);
 		return null;
 	}

@@ -80,7 +80,7 @@ public class Parser {
 		return new Stmt.Function(name, functionBody(kind));
 	}
 
-	private Expr.Lambda functionBody(String kind) {
+	private Expr.AnonymousFun functionBody(String kind) {
 		List<Token> paramaters = null;
 		if (!kind.equals("method") || check(TokenType.LEFT_PAREN)) {
 			consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + "name.");
@@ -96,9 +96,19 @@ public class Parser {
 			}
 			consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.");
 		}
+		if (check(TokenType.ARROW)) {
+			consume(TokenType.ARROW, "ARROW");
+			return arrowFun(paramaters);
+		}
 		consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
 		List<Stmt> body = block();
-		return new Expr.Lambda(paramaters, body);
+		return new Expr.AnonymousFun(paramaters, body);
+	}
+
+	private Expr.AnonymousFun arrowFun(List<Token> parameters) {
+		// fun x () -> expr;
+		Expr expr = expression();
+		return new Expr.AnonymousFun(parameters, List.of(new Stmt.Return(null, expr)));
 	}
 
 	private Stmt varDeclaration() {

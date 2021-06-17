@@ -9,11 +9,11 @@ import java.util.List;
 public class QanunFunction implements QanunCallable {
 
 	private final String name;
-	private final Expr.Lambda declaration;
+	private final Expr.AnonymousFun declaration;
 	private final Environment closure;
 	private final boolean isInitializer;
 
-	public QanunFunction(String name, Expr.Lambda declaration, Environment closure, boolean isInitializer) {
+	public QanunFunction(String name, Expr.AnonymousFun declaration, Environment closure, boolean isInitializer) {
 		this.name = name;
 		this.isInitializer = isInitializer;
 		this.declaration = declaration;

@@ -32,7 +32,7 @@ abstract class Expr {
 
 		R visitLogicalExpr(Logical expr);
 
-		R visitLambdaExpr(Lambda expr);
+		R visitAnonymousFunExpr(AnonymousFun expr);
 
 		R visitUnaryExpr(Unary expr);
 
@@ -255,16 +255,16 @@ abstract class Expr {
 		final Expr right;
 	}
 
-	static class Lambda extends Expr {
+	static class AnonymousFun extends Expr {
 
-		Lambda(List<Token> params, List<Stmt> body) {
+		AnonymousFun(List<Token> params, List<Stmt> body) {
 			this.params = params;
 			this.body = body;
 		}
 
 		@Override
 		<R> R accept(Visitor<R> visitor) {
-			return visitor.visitLambdaExpr(this);
+			return visitor.visitAnonymousFunExpr(this);
 		}
 
 		final List<Token> params;

@@ -140,7 +140,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 	}
 
 	@Override
-	public Void visitLambdaExpr(Expr.Lambda expr) {
+	public Void visitAnonymousFunExpr(Expr.AnonymousFun expr) {
 		resolveFunction(expr, FunctionType.FUNCTION);
 		return null;
 	}
@@ -194,7 +194,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		for (Stmt.Function method : stmt.staticMethods) {
 			beginScope();
 			scopes.peek().put("this", true);
-			resolveFunction(method.lambda, FunctionType.METHOD);
+			resolveFunction(method.anonFun, FunctionType.METHOD);
 			endScope();
 		}
 		for (Stmt.Function method : stmt.methods) {
@@ -202,7 +202,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 			if (method.name.getLexeme().equals("init")) {
 				declaration = FunctionType.INITIALIZER;
 			}
-			resolveFunction(method.lambda, declaration);
+			resolveFunction(method.anonFun, declaration);
 		}
 		endScope();
 		if (stmt.superClass != null) {
@@ -226,7 +226,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		This lets a function recursively refer to itself inside its own body.
 		 */
 		define(stmt.name);
-		resolveFunction(stmt.lambda, FunctionType.FUNCTION);
+		resolveFunction(stmt.anonFun, FunctionType.FUNCTION);
 		return null;
 	}
 
@@ -389,7 +389,7 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		}
 	}
 
-	private void resolveFunction(Expr.Lambda function, FunctionType type) {
+	private void resolveFunction(Expr.AnonymousFun function, FunctionType type) {
 		FunctionType enclosingFunction = currentFunction;
 		currentFunction = type;
 		beginScope();

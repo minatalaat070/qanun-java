@@ -40,9 +40,8 @@ public class Scanner {
 		keywords.put("default", TokenType.DEFAULT);
 		keywords.put("val", TokenType.VAL);
 		keywords.put("break", TokenType.BREAK);
-		keywords.put("continue", TokenType.CONTINUE);	
+		keywords.put("continue", TokenType.CONTINUE);
 		keywords.put("static", TokenType.STATIC);
-
 
 	}
 
@@ -88,7 +87,7 @@ public class Scanner {
 				addToken(TokenType.DOT);
 				break;
 			case '-':
-				addToken(isNextMatches('-') ? TokenType.MINUS_MINUS : isNextMatches('=') ? TokenType.MINUS_EQUAL : TokenType.MINUS);
+				addToken(isNextMatches('-') ? TokenType.MINUS_MINUS : isNextMatches('=') ? TokenType.MINUS_EQUAL : isNextMatches('>') ? TokenType.ARROW : TokenType.MINUS);
 				break;
 			case '+':
 				addToken(isNextMatches('+') ? TokenType.PLUS_PLUS : isNextMatches('=') ? TokenType.PLUS_EQUAL : TokenType.PLUS);

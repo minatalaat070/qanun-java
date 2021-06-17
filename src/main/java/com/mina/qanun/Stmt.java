@@ -65,9 +65,9 @@ abstract class Stmt {
 
 	static class Function extends Stmt {
 
-		Function(Token name, Expr.Lambda lambda) {
+		Function(Token name, Expr.AnonymousFun anonFun) {
 			this.name = name;
-			this.lambda = lambda;
+			this.anonFun = anonFun;
 		}
 
 		@Override
@@ -76,7 +76,7 @@ abstract class Stmt {
 		}
 
 		final Token name;
-		final Expr.Lambda lambda;
+		final Expr.AnonymousFun anonFun;
 	}
 
 	static class Class extends Stmt {
