@@ -134,6 +134,9 @@ public class Parser {
 	}
 
 	private Stmt statement() {
+		if (match(TokenType.IMPORT)) {
+			return importStatement();
+		}
 		if (match(TokenType.FOR)) {
 			return forStatement();
 		}
@@ -165,6 +168,13 @@ public class Parser {
 		Expr expr = expression();
 		consume(TokenType.SEMICOLON, "Expect ';' after expression.");
 		return new Stmt.Expression(expr);
+	}
+
+	private Stmt importStatement() {
+		Token keyword = previous();
+		Expr expr = expression();
+		consume(TokenType.SEMICOLON, "Expect ';' after module name");
+		return new Stmt.Import(keyword, expr);
 	}
 
 	private Stmt forStatement() {

@@ -1,5 +1,9 @@
 package com.mina.qanun;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -654,6 +658,17 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Void visitContinueStmt(Stmt.Continue stmt) {
 		throw new ContinueJump();
+	}
+
+	@Override
+	public Void visitImportStmt(Stmt.Import stmt) {
+		Object module = evaluate(stmt.path);
+		if (!(module instanceof String)) {
+			throw new RuntimeError(stmt.keyword, "Module name must be a string.");
+		}
+		String fullModulePath = (String) module;
+		Qanun.processModule(fullModulePath, stmt.keyword, module);
+		return null;
 	}
 
 	private boolean isTruthy(Object right) {

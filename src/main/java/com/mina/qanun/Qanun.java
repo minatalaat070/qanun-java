@@ -1,6 +1,8 @@
 package com.mina.qanun;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -91,6 +93,28 @@ public class Qanun {
 			return;
 		}
 		interpreter.interpret(statements);
+	}
+
+	static void processModule(String path, Token keyword, Object module) {
+		StringBuilder source = new StringBuilder();
+		try {
+			path += ".qan";
+			File file = new File(path);
+			if (!file.exists()) {
+				file = new File(path.replace(".qan", ".qanun"));
+				if (!file.exists()) {
+					throw new RuntimeError(keyword, "Module name must be a string ends with '.qan' or '.qanun' extenstion.");
+				}
+			}
+			BufferedReader br = new BufferedReader(new FileReader(file));
+			String currentLine;
+			while ((currentLine = br.readLine()) != null) {
+				source.append(currentLine).append("\n");
+			}
+			run(source.toString());
+		} catch (IOException e) {
+			throw new RuntimeError(keyword, "Couldn't import module '" + module + "'.");
+		}
 	}
 
 	static void error(int line, String message) {

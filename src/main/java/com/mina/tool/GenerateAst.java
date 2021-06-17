@@ -57,7 +57,8 @@ public class GenerateAst {
 				"ForEach    : Stmt init, Expr iterable, Stmt body",
 				"Break      : Token name",
 				"Continue   : Token name",
-				"Switch   : Expr expression, List<Object> values, List<List<Stmt>> actions" // DO NOT leave spaces in string unless is needed
+				"Switch   : Expr expression, List<Object> values, List<List<Stmt>> actions", // DO NOT leave spaces in string unless is needed
+				"Import : Token keyword, Expr path"
 		));
 	}
 

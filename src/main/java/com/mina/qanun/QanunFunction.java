@@ -20,6 +20,10 @@ public class QanunFunction implements QanunCallable {
 		this.closure = closure;
 	}
 
+	public String getName() {
+		return name;
+	}
+
 	QanunFunction bind(QanunInstance instance) {
 		Environment environment = new Environment(this.closure);
 		environment.define(new Token(TokenType.THIS, "this", null, -1), instance);
