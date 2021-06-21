@@ -120,6 +120,9 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		if (object instanceof QanunInstance) {
 			return ((QanunInstance) object).get(expr.name);
 		}
+		if (object instanceof QanunModule) {
+			return ((QanunModule) object).get(expr.name, this.environment);
+		}
 		throw new RuntimeError(expr.name,
 				"Only instances have properties.");
 	}
@@ -332,7 +335,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		return new QanunFunction(null, expr, this.environment, false);
 	}
 
-	private Object evaluate(Expr expression) {
+	Object evaluate(Expr expression) {
 		return expression.accept(this);
 	}
 
@@ -400,6 +403,26 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			this.environment = this.environment.getEnclosing();
 		}
 		environment.assign(stmt.name, qanunClass);
+		return null;
+	}
+
+	@Override
+	public Void visitModuleStmt(Stmt.Module stmt) {
+
+		QanunModule qanunModule = new QanunModule(stmt.name, stmt.classes, stmt.functions, stmt.variables, stmt.constants);
+		this.environment.define(stmt.name, qanunModule);
+		stmt.classes.forEach((key, classStatement) -> {
+			execute(classStatement);
+		});
+		stmt.functions.forEach((key, functionStatement) -> {
+			execute(functionStatement);
+		});
+		stmt.variables.forEach((key, varStatement) -> {
+			execute(varStatement);
+		});
+		stmt.constants.forEach((key, valStatement) -> {
+			execute(valStatement);
+		});
 		return null;
 	}
 
@@ -667,7 +690,35 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			throw new RuntimeError(stmt.keyword, "Module name must be a string.");
 		}
 		String fullModulePath = (String) module;
-		Qanun.processModule(fullModulePath, stmt.keyword, module);
+		List<Stmt> stmts = Qanun.processModule(fullModulePath, stmt.keyword, module);
+		Map<String, Stmt.Class> classes = new HashMap<>();
+		Map<String, Stmt.Function> functions = new HashMap<>();
+		Map<String, Stmt.Var> variables = new HashMap<>();
+		Map<String, Stmt.Val> constants = new HashMap<>();
+		for (Stmt item : stmts) {
+			if (item instanceof Stmt.Class) {
+				Stmt.Class i = (Stmt.Class) item;
+				classes.put(i.name.getLexeme(), i);
+				continue;
+			}
+			if (item instanceof Stmt.Function) {
+				Stmt.Function i = (Stmt.Function) item;
+				functions.put(i.name.getLexeme(), i);
+				continue;
+			}
+			if (item instanceof Stmt.Var) {
+				Stmt.Var i = (Stmt.Var) item;
+				variables.put(i.name.getLexeme(),i);
+				continue;
+			}
+			if (item instanceof Stmt.Val) {
+				Stmt.Val i = (Stmt.Val) item;
+				constants.put(i.name.getLexeme(),i);
+			}
+		}
+		Token name = new Token(null, new File(fullModulePath).getName(), null, -1);
+		Stmt.Module mod = new Stmt.Module(name, classes, functions, variables, constants);
+		execute(mod);
 		return null;
 	}
 

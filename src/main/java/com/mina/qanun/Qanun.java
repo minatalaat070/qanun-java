@@ -33,6 +33,7 @@ public class Qanun {
 	static boolean hadError = false;
 	static boolean hadRuntimeError = false;
 	static boolean isInRepl;
+	static String fileName;
 
 	public static void main(String[] args) throws IOException {
 		if (args.length > 1) {
@@ -48,7 +49,9 @@ public class Qanun {
 	}
 
 	private static void runFile(String path) throws IOException {
-		boolean isDotQanFile = Paths.get(path).getFileName().toString().matches("([a-zA-z1-9]+\\.)+(qanun|qan)$");
+		String name = Paths.get(path).getFileName().toString();
+		Qanun.fileName = name;
+		boolean isDotQanFile = name.matches("([a-zA-z1-9]+\\.)+(qanun|qan)$");
 		if (!isDotQanFile) {
 			System.err.println("Error: Qanun file should end with .qan or .qanun file extension");
 			System.exit(Error.EX_GENERAL.getCode());
@@ -95,15 +98,16 @@ public class Qanun {
 		interpreter.interpret(statements);
 	}
 
-	static void processModule(String path, Token keyword, Object module) {
+	static List<Stmt> processModule(String path, Token keyword, Object module) {
 		StringBuilder source = new StringBuilder();
 		try {
 			path += ".qan";
-			File file = new File(path);
+			File file = Paths.get(path).toFile();
+			Qanun.fileName = file.getAbsolutePath();
 			if (!file.exists()) {
-				file = new File(path.replace(".qan", ".qanun"));
+				file = Paths.get(path.replace(".qan", ".qanun")).toFile();
 				if (!file.exists()) {
-					throw new RuntimeError(keyword, "Module name must be a string ends with '.qan' or '.qanun' extenstion.");
+					throw new RuntimeError(keyword, "Module doesn't exisit or file name doesn't end with '.qan' or '.qanun' extenstion.");
 				}
 			}
 			BufferedReader br = new BufferedReader(new FileReader(file));
@@ -111,7 +115,19 @@ public class Qanun {
 			while ((currentLine = br.readLine()) != null) {
 				source.append(currentLine).append("\n");
 			}
-			run(source.toString());
+			Scanner scanner = new Scanner(source.toString());
+			List<Token> tokens = scanner.scanTokens();
+			Parser parser = new Parser(tokens);
+			List<Stmt> statements = parser.parse();
+			if (hadError) {
+				System.exit(Error.EX_DATAERR.code);
+			}
+			Resolver resolver = new Resolver(interpreter);
+			resolver.resolve(statements);
+			if (hadError) {
+				System.exit(Error.EX_DATAERR.code);
+			}
+			return statements;
 		} catch (IOException e) {
 			throw new RuntimeError(keyword, "Couldn't import module '" + module + "'.");
 		}
@@ -130,13 +146,12 @@ public class Qanun {
 	}
 
 	static void runtimeError(RuntimeError error) {
-		System.err.println("[line " + error.token.getLine() + "] " + error.getMessage());
+		System.err.println("File => '" + Qanun.fileName + "' \n[line " + error.token.getLine() + "] " + error.getMessage());
 		hadRuntimeError = true;
 	}
 
 	private static void report(int line, String where, String message) {
-		System.err.println(
-				"[line " + line + "] Error" + where + ": " + message);
+		System.err.println("File => '" + Qanun.fileName + "' \n[line " + line + "] Error" + where + ": " + message);
 		hadError = true;
 	}
 }

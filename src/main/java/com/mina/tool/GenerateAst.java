@@ -47,6 +47,8 @@ public class GenerateAst {
 				"Expression : Expr expression", //expression statment	
 				"Function   : Token name, Expr.AnonymousFun anonFun",
 				"Class    : Token name, Expr.Variable superClass, List<Stmt.Function> methods, List<Stmt.Function> staticMethods",
+				"Module : Token name, Map<String,Stmt.Class> classes, Map<String,Stmt.Function> functions,"
+				+ " Map<String,Stmt.Var> variables, Map<String,Stmt.Val> constants",
 				"If         : Expr condition, Stmt thenBranch,"
 				+ " Stmt elseBranch",
 				"Return     : Token keyword, Expr value",
@@ -64,10 +66,12 @@ public class GenerateAst {
 
 	private static void defineAst(String outputDir, String baseName, List<String> exprTypes) throws FileNotFoundException, UnsupportedEncodingException {
 		String path = outputDir + "/" + baseName + ".java";
-		try (PrintWriter writer = new PrintWriter(path, "UTF-8")) {
+		try ( PrintWriter writer = new PrintWriter(path, "UTF-8")) {
 			writer.println("package com.mina.qanun;");
 			writer.println();
 			writer.println("import java.util.List;");
+			writer.println();
+			writer.println("import java.util.Map;");
 			writer.println();
 			writer.println("abstract class " + baseName + " {");
 			defineVisitor(writer, baseName, exprTypes);

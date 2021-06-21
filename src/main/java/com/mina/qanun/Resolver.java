@@ -342,13 +342,32 @@ public class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
 		return null;
 	}
 
+	@Override
+	public Void visitModuleStmt(Stmt.Module stmt) {
+		declare(stmt.name);
+		define(stmt.name);
+		stmt.classes.forEach((key, classStmt) -> {
+			resolve(classStmt);
+		});
+		stmt.functions.forEach((key, funStmt) -> {
+			resolve(funStmt);
+		});
+		stmt.variables.forEach((key, var) -> {
+			resolve(var);
+		});
+		stmt.constants.forEach((key, val) -> {
+			resolve(val);
+		});
+		return null;
+	}
+
 	void resolve(List<Stmt> statements) {
 		for (Stmt statement : statements) {
 			resolve(statement);
 		}
 	}
 
-	 private void resolve(Stmt statement) {
+	private void resolve(Stmt statement) {
 		statement.accept(this);
 	}
 
