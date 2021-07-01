@@ -1,9 +1,6 @@
 package com.mina.qanun;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,6 +120,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		if (object instanceof QanunModule) {
 			return ((QanunModule) object).get(expr.name, this.environment);
 		}
+
+		if (object instanceof QanunNativeInstance) {
+			Object result = ((QanunNativeInstance) object).findMethod(expr.name.getLexeme());
+			return result;
+		}
+
 		throw new RuntimeError(expr.name,
 				"Only instances have properties.");
 	}
@@ -409,7 +412,8 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Void visitModuleStmt(Stmt.Module stmt) {
 
-		QanunModule qanunModule = new QanunModule(stmt.name, stmt.classes, stmt.functions, stmt.variables, stmt.constants);
+		QanunModule qanunModule = new QanunModule(stmt.name, stmt.classes, 
+				stmt.functions, stmt.variables, stmt.constants);
 		this.environment.define(stmt.name, qanunModule);
 		stmt.classes.forEach((key, classStatement) -> {
 			execute(classStatement);
@@ -690,6 +694,10 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			throw new RuntimeError(stmt.keyword, "Module name must be a string.");
 		}
 		String fullModulePath = (String) module;
+		if (fullModulePath.startsWith("std:")) {
+			processBuiltInModule(stmt, fullModulePath.split("std:")[1]);
+			return null;
+		}
 		List<Stmt> stmts = Qanun.processModule(fullModulePath, stmt.keyword, module);
 		Map<String, Stmt.Class> classes = new HashMap<>();
 		Map<String, Stmt.Function> functions = new HashMap<>();
@@ -708,12 +716,12 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			}
 			if (item instanceof Stmt.Var) {
 				Stmt.Var i = (Stmt.Var) item;
-				variables.put(i.name.getLexeme(),i);
+				variables.put(i.name.getLexeme(), i);
 				continue;
 			}
 			if (item instanceof Stmt.Val) {
 				Stmt.Val i = (Stmt.Val) item;
-				constants.put(i.name.getLexeme(),i);
+				constants.put(i.name.getLexeme(), i);
 			}
 		}
 		Token name = new Token(null, new File(fullModulePath).getName(), null, -1);
@@ -786,4 +794,22 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 		StandardLibrary.defineGlobals(globals);
 	}
 
+	private void processBuiltInModule(Stmt.Import stmt, String string) {
+		switch (string) {
+			case "File":
+				globals.define(new Token(null, BuiltInModules.File.getName(), null, -1), BuiltInModules.File);
+				break;
+			case "Time":
+				globals.define(new Token(null, BuiltInModules.Time.getName(), null, -1), BuiltInModules.Time);
+				break;
+			case "Crypto":
+				globals.define(new Token(null, BuiltInModules.Crypto.getName(), null, -1), BuiltInModules.Crypto);
+				break;
+			case "*":
+				BuiltInModules.importAll(globals);
+				break;
+			default:
+				throw new RuntimeError(stmt.keyword, "No built in module with name '" + string + "'");
+		}
+	}
 }

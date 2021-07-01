@@ -146,12 +146,16 @@ public class Qanun {
 	}
 
 	static void runtimeError(RuntimeError error) {
-		System.err.println("File => '" + Qanun.fileName + "' \n[line " + error.token.getLine() + "] " + error.getMessage());
+		String infile ="";
+		if(isInRepl) infile = "File => '" + Qanun.fileName ;
+		System.err.println( infile+"' \n[line " + error.token.getLine() + "] " + error.getMessage());
 		hadRuntimeError = true;
 	}
 
 	private static void report(int line, String where, String message) {
-		System.err.println("File => '" + Qanun.fileName + "' \n[line " + line + "] Error" + where + ": " + message);
+		String infile ="";
+		if(isInRepl) infile = "File => '" + Qanun.fileName ;
+		System.err.println( infile+"' \n[line " + line + "] Error" + where + ": " + message);
 		hadError = true;
 	}
 }

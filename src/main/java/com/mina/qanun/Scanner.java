@@ -35,7 +35,7 @@ public class Scanner {
 		keywords.put("true", TokenType.TRUE);
 		keywords.put("var", TokenType.VAR);
 		keywords.put("while", TokenType.WHILE);
-		keywords.put("switch", TokenType.SWITCH); // not implemented yet
+		keywords.put("switch", TokenType.SWITCH);
 		keywords.put("case", TokenType.CASE);
 		keywords.put("default", TokenType.DEFAULT);
 		keywords.put("val", TokenType.VAL);
