@@ -47,8 +47,8 @@ public class GenerateAst {
 				"Expression : Expr expression", //expression statment	
 				"Function   : Token name, Expr.AnonymousFun anonFun",
 				"Class    : Token name, Expr.Variable superClass, List<Stmt.Function> methods, List<Stmt.Function> staticMethods",
-				"Module : Token name, Map<String,Stmt.Class> classes, Map<String,Stmt.Function> functions,"
-				+ " Map<String,Stmt.Var> variables, Map<String,Stmt.Val> constants",
+				"Module : Token name, List<Stmt.Class> classes, List<Stmt.Function> functions,"
+				+ " List<Stmt.Var> variables, List<Stmt.Val> constants",
 				"If         : Expr condition, Stmt thenBranch,"
 				+ " Stmt elseBranch",
 				"Return     : Token keyword, Expr value",

@@ -118,7 +118,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			return ((QanunInstance) object).get(expr.name);
 		}
 		if (object instanceof QanunModule) {
-			return ((QanunModule) object).get(expr.name, this.environment);
+			return ((QanunModule) object).get(expr.name);
 		}
 
 		if (object instanceof QanunNativeInstance) {
@@ -411,22 +411,30 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 
 	@Override
 	public Void visitModuleStmt(Stmt.Module stmt) {
-
-		QanunModule qanunModule = new QanunModule(stmt.name, stmt.classes, 
-				stmt.functions, stmt.variables, stmt.constants);
+		this.environment = new Environment(this.environment);
+		Map<String, Stmt.Class> classes = new HashMap<>();
+		for (Stmt.Class cls : stmt.classes) {
+			execute(cls);
+			classes.put(cls.name.getLexeme(), cls);
+		}
+		Map<String, Stmt.Function> functions = new HashMap<>();
+		for (Stmt.Function fun : stmt.functions) {
+			execute(fun);
+			functions.put(fun.name.getLexeme(), fun);
+		}
+		Map<String, Stmt.Var> vars = new HashMap<>();
+		for (Stmt.Var var : stmt.variables) {
+			execute(var);
+			vars.put(var.name.getLexeme(), var);
+		}
+		Map<String, Stmt.Val> vals = new HashMap<>();
+		for (Stmt.Val val : stmt.constants) {
+			execute(val);
+			vals.put(val.name.getLexeme(), val);
+		}
+		QanunModule qanunModule = new QanunModule(stmt.name, classes, functions, vars, vals, this.environment);
+		this.environment = this.environment.getEnclosing();
 		this.environment.define(stmt.name, qanunModule);
-		stmt.classes.forEach((key, classStatement) -> {
-			execute(classStatement);
-		});
-		stmt.functions.forEach((key, functionStatement) -> {
-			execute(functionStatement);
-		});
-		stmt.variables.forEach((key, varStatement) -> {
-			execute(varStatement);
-		});
-		stmt.constants.forEach((key, valStatement) -> {
-			execute(valStatement);
-		});
 		return null;
 	}
 
@@ -699,29 +707,29 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 			return null;
 		}
 		List<Stmt> stmts = Qanun.processModule(fullModulePath, stmt.keyword, module);
-		Map<String, Stmt.Class> classes = new HashMap<>();
-		Map<String, Stmt.Function> functions = new HashMap<>();
-		Map<String, Stmt.Var> variables = new HashMap<>();
-		Map<String, Stmt.Val> constants = new HashMap<>();
+		List<Stmt.Class> classes = new ArrayList<>();
+		List<Stmt.Function> functions = new ArrayList<>();
+		List<Stmt.Var> variables = new ArrayList<>();
+		List<Stmt.Val> constants = new ArrayList<>();
 		for (Stmt item : stmts) {
 			if (item instanceof Stmt.Class) {
 				Stmt.Class i = (Stmt.Class) item;
-				classes.put(i.name.getLexeme(), i);
+				classes.add(i);
 				continue;
 			}
 			if (item instanceof Stmt.Function) {
 				Stmt.Function i = (Stmt.Function) item;
-				functions.put(i.name.getLexeme(), i);
+				functions.add(i);
 				continue;
 			}
 			if (item instanceof Stmt.Var) {
 				Stmt.Var i = (Stmt.Var) item;
-				variables.put(i.name.getLexeme(), i);
+				variables.add(i);
 				continue;
 			}
 			if (item instanceof Stmt.Val) {
 				Stmt.Val i = (Stmt.Val) item;
-				constants.put(i.name.getLexeme(), i);
+				constants.add(i);
 			}
 		}
 		Token name = new Token(null, new File(fullModulePath).getName(), null, -1);

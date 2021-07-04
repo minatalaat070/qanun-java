@@ -18,16 +18,19 @@ public class QanunModule {
 	private final Map<String, Stmt.Function> functions;
 	private final Map<String, Stmt.Var> variables;
 	private final Map<String, Stmt.Val> constants;
+	private final Environment environment;
 
-	public QanunModule(Token name, Map<String, Stmt.Class> classes, Map<String, Stmt.Function> functions, Map<String, Stmt.Var> variables, Map<String, Stmt.Val> constants) {
+	public QanunModule(Token name, Map<String, Stmt.Class> classes, Map<String, Stmt.Function> functions,
+			Map<String, Stmt.Var> variables, Map<String, Stmt.Val> constants,Environment environment) {
 		this.name = name;
 		this.classes = classes;
 		this.functions = functions;
 		this.variables = variables;
 		this.constants = constants;
+		this.environment = environment;
 	}
 
-	Object get(Token name, Environment environment) {
+	Object get(Token name) {
 		if (classes.containsKey(name.getLexeme())) {
 			return environment.get(name);
 		}

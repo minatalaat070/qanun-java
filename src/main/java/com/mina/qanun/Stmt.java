@@ -107,7 +107,7 @@ abstract class Stmt {
 
 	static class Module extends Stmt {
 
-		Module(Token name, Map<String, Stmt.Class> classes, Map<String, Stmt.Function> functions, Map<String, Stmt.Var> variables, Map<String, Stmt.Val> constants) {
+		Module(Token name, List<Stmt.Class> classes, List<Stmt.Function> functions, List<Stmt.Var> variables, List<Stmt.Val> constants) {
 			this.name = name;
 			this.classes = classes;
 			this.functions = functions;
@@ -121,10 +121,10 @@ abstract class Stmt {
 		}
 
 		final Token name;
-		final Map<String, Stmt.Class> classes;
-		final Map<String, Stmt.Function> functions;
-		final Map<String, Stmt.Var> variables;
-		final Map<String, Stmt.Val> constants;
+		final List<Stmt.Class> classes;
+		final List<Stmt.Function> functions;
+		final List<Stmt.Var> variables;
+		final List<Stmt.Val> constants;
 	}
 
 	static class If extends Stmt {
