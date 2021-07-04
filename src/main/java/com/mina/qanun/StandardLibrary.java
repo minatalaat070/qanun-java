@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.MissingFormatArgumentException;
 
 /**
  *
@@ -19,6 +18,7 @@ public class StandardLibrary {
 		nativePrintf(globals, new Token(TokenType.IDENTIFIER, "printf", null, 0));
 		nativeClock(globals, new Token(TokenType.IDENTIFIER, "clock", null, 0));
 		nativeStr(globals, new Token(TokenType.IDENTIFIER, "str", null, 0));
+		nativeSplit(globals, new Token(TokenType.IDENTIFIER, "split", null, 0));
 		nativeLen(globals, new Token(TokenType.IDENTIFIER, "len", null, 0));
 		nativeNum(globals, new Token(TokenType.IDENTIFIER, "num", null, 0));
 		nativeRead(globals, new Token(TokenType.IDENTIFIER, "read", null, 0));
@@ -87,8 +87,8 @@ public class StandardLibrary {
 					String str = (String) arguments.get(0);
 					List list = (List) arguments.get(1);
 					System.out.printf(str, list.toArray());
-				}catch(Exception exp){
-					throw new RuntimeError(token,"Illegal or wrong format argument exception");
+				} catch (Exception exp) {
+					throw new RuntimeError(token, "Illegal or wrong format argument exception");
 				}
 				return null;
 			}
@@ -287,6 +287,30 @@ public class StandardLibrary {
 			@Override
 			public String toString() {
 				return "<native function 'type'>";
+			}
+		});
+	}
+
+	private static void nativeSplit(Environment globals, Token token) {
+		globals.define(token, new QanunCallable() {
+			@Override
+			public int arity() {
+				return 2;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> arguments) {
+				if(arguments.get(0) instanceof String && arguments.get(1) instanceof String){
+					String str = (String) arguments.get(0);
+					String sep = (String) arguments.get(1);
+					List res = List.of(str.split(sep));
+					return res;
+				}
+				throw new RuntimeError(token,"first and second parameters must be strings");
+			}
+			@Override
+			public String toString() {
+				return "<native function 'split'>";
 			}
 		});
 	}

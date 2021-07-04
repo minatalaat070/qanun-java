@@ -468,7 +468,7 @@ public class Parser {
 				Token name = consume(TokenType.IDENTIFIER, "Expect property name after '.'.");
 				expr = new Expr.Get(expr, name);
 			} else if (match(TokenType.LEFT_SQUARE_BRACKET)) {
-				Expr index = primary();
+				Expr index = expression();
 				consume(TokenType.RIGHT_SQUARE_BRACKET,
 						"Expected ']' after subscript index.");
 				expr = new Expr.ListAccessor(expr, exprName, index);
