@@ -589,7 +589,7 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 	@Override
 	public Object visitAssignExpr(Expr.Assign expr) {
 		Object value = evaluate(expr.value);
-
+		
 		switch (expr.equalSign.getType()) {
 			case PLUS_EQUAL: {
 				Object currentValue = environment.get(expr.name);
@@ -598,8 +598,16 @@ public class Interpreter implements Expr.Visitor<Object>, Stmt.Visitor<Void> {
 					value = (double) currentValue + (double) value;
 					break;
 				} else if (value instanceof List && currentValue instanceof List) {
-					((List) currentValue).addAll((List) value);
-					value = currentValue;
+					List left = (List) currentValue;//.addAll((List) value);
+					List right = (List) value;
+					//value = currentValue;
+					//List leftCasted = (List) left;
+					List tmp = new ArrayList();
+					for (Object object : left) {
+						tmp.add(object);
+					}
+					tmp.addAll( right);
+					value = tmp;
 					break;
 				} else {
 					throw new RuntimeError(expr.equalSign, "Operands must be numbers or lists");
