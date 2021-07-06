@@ -3,6 +3,9 @@ package com.mina.qanun;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -20,6 +23,7 @@ public class StandardLibrary {
 		nativeStr(globals, new Token(TokenType.IDENTIFIER, "str", null, 0));
 		nativeSplit(globals, new Token(TokenType.IDENTIFIER, "split", null, 0));
 		nativeLen(globals, new Token(TokenType.IDENTIFIER, "len", null, 0));
+		nativeCopyList(globals, new Token(TokenType.IDENTIFIER, "copyList", null, 0));
 		nativeNum(globals, new Token(TokenType.IDENTIFIER, "num", null, 0));
 		nativeRead(globals, new Token(TokenType.IDENTIFIER, "read", null, 0));
 		nativeReadLine(globals, new Token(TokenType.IDENTIFIER, "readln", null, 0));
@@ -162,6 +166,25 @@ public class StandardLibrary {
 		});
 	}
 
+	private static void nativeCopyList(Environment globals, Token token) {
+		globals.define(token, new QanunCallable() {
+			@Override
+			public int arity() {
+				return 1;
+			}
+
+			@Override
+			public Object call(Interpreter interpreter, List<Object> arguments) {
+				if (arguments.get(0) instanceof List) {
+					List original = (List) (arguments.get(0));
+					return new ArrayList(original);
+				} else {
+					throw new RuntimeError(token, "Expect argument to be List");
+				}
+			}
+		});
+	}
+
 	private static void nativeNum(Environment globals, Token token) {
 		globals.define(token, new QanunCallable() {
 			@Override
@@ -300,14 +323,15 @@ public class StandardLibrary {
 
 			@Override
 			public Object call(Interpreter interpreter, List<Object> arguments) {
-				if(arguments.get(0) instanceof String && arguments.get(1) instanceof String){
+				if (arguments.get(0) instanceof String && arguments.get(1) instanceof String) {
 					String str = (String) arguments.get(0);
 					String sep = (String) arguments.get(1);
 					List res = List.of(str.split(sep));
 					return res;
 				}
-				throw new RuntimeError(token,"first and second parameters must be strings");
+				throw new RuntimeError(token, "first and second parameters must be strings");
 			}
+
 			@Override
 			public String toString() {
 				return "<native function 'split'>";
