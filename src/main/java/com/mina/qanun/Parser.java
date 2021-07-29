@@ -14,6 +14,7 @@ public class Parser {
 
 	private final List<Token> tokens;
 	private int current;
+	private boolean maybeNamedArrowFun;
 
 	public Parser(List<Token> tokens) {
 		this.tokens = tokens;
@@ -34,7 +35,10 @@ public class Parser {
 			}
 			if (check(TokenType.FUN) && checkNext(TokenType.IDENTIFIER)) {
 				consume(TokenType.FUN, null);
-				return function("function");
+				maybeNamedArrowFun = true;
+				Stmt.Function fun = function("function");
+				maybeNamedArrowFun = false;
+				return fun;
 			}
 			if (match(TokenType.VAR)) {
 				return varDeclaration();
@@ -83,7 +87,7 @@ public class Parser {
 	private Expr.AnonymousFun functionBody(String kind) {
 		List<Token> paramaters = null;
 		if (!kind.equals("method") || check(TokenType.LEFT_PAREN)) {
-			consume(TokenType.LEFT_PAREN, "Expected '(' after " + kind + "name.");
+			consume(TokenType.LEFT_PAREN, "Expect '(' after " + kind + "name.");
 			paramaters = new ArrayList<>();
 			if (!check(TokenType.RIGHT_PAREN)) {
 				do {
@@ -91,16 +95,16 @@ public class Parser {
 						error(peek(), "Cannot have more that 255 paramaters.");
 					}
 
-					paramaters.add(consume(TokenType.IDENTIFIER, "Expected paramater name."));
+					paramaters.add(consume(TokenType.IDENTIFIER, "Expect paramater name."));
 				} while (match(TokenType.COMMA));
 			}
-			consume(TokenType.RIGHT_PAREN, "Expected ')' after parameters.");
+			consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.");
 		}
 		if (check(TokenType.ARROW)) {
-			consume(TokenType.ARROW, "ARROW");
+			consume(TokenType.ARROW, "Expect '->' after '(' ");
 			return arrowFun(paramaters);
 		}
-		consume(TokenType.LEFT_BRACE, "Expected '{' before " + kind + " body.");
+		consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.");
 		List<Stmt> body = block();
 		return new Expr.AnonymousFun(paramaters, body);
 	}
@@ -108,6 +112,9 @@ public class Parser {
 	private Expr.AnonymousFun arrowFun(List<Token> parameters) {
 		// fun x () -> expr;
 		Expr expr = expression();
+		if (maybeNamedArrowFun) {
+			consume(TokenType.SEMICOLON, "Expect ';' after expression");
+		}
 		return new Expr.AnonymousFun(parameters, List.of(new Stmt.Return(null, expr)));
 	}
 
@@ -470,7 +477,7 @@ public class Parser {
 			} else if (match(TokenType.LEFT_SQUARE_BRACKET)) {
 				Expr index = expression();
 				consume(TokenType.RIGHT_SQUARE_BRACKET,
-						"Expected ']' after subscript index.");
+						"Expect ']' after subscript index.");
 				expr = new Expr.ListAccessor(expr, exprName, index);
 			} else {
 				break;
